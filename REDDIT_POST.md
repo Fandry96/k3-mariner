@@ -43,6 +43,6 @@ I've packaged this up for the community:
 4. Enter your Google API Key.
 5. *Sail.*
 
-**Download / Repo:** [Link to GitHub/Gist]
+**Source Code:** [https://github.com/Fandry96/k3-mariner](https://github.com/Fandry96/k3-mariner)
 
 *Gravity is optional.*
