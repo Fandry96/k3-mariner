@@ -1,4 +1,4 @@
-# [RELEASE] K3 Mariner: The Open-Source Alternative to DeepMind's "Project Mariner"
+# [RELEASE] K3 Mariner: The Unofficial Open-Source Alternative to "Project Mariner"
 
 **Protocol**: `ANTIGRAVITY DROP`
 **Target**: r/googleantigravity
