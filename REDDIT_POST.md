@@ -43,6 +43,16 @@ I've packaged this up for the community:
 4. Enter your Google API Key.
 5. *Sail.*
 
+### 🔮 Roadmap: The Full Stack Matryoshka
+
+The Community Edition is designed for speed and simplicity. But the "Pro" integration is coming.
+
+* **MRL Memory Integration**: Connect Mariner to your local vector store (Matryoshka Representation Learning).
+* **Tiered Reasoning**: 64-dim binary retrieval for speed, 768-dim float retrieval for deep synthesis.
+* **Zero-Config RAG**: Drag-and-drop document indexing.
+
+*"The Agent is the Cortex. MRL is the Hippocampus."*
+
 **Source Code:** [https://github.com/Fandry96/k3-mariner](https://github.com/Fandry96/k3-mariner)
 
 *Gravity is optional.*

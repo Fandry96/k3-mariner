@@ -61,6 +61,11 @@ streamlit run app.py
 
 See `smolagents_bible.md` for a comprehensive guide on the underlying framework and architecture.
 
+## 🔮 Roadmap
+
+* **MRL Integration**: Future versions will support "Resolution Matching" to connect with local Vector/MRL stores.
+- **Tool Plugins**: Drop-in support for additional MCP tools.
+
 ## License
 
 MIT License. Free to fork, modify, and deploy.
