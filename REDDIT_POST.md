@@ -1,0 +1,48 @@
+# [RELEASE] K3 Mariner: The Open-Source Alternative to DeepMind's "Project Mariner"
+
+**Protocol**: `ANTIGRAVITY DROP`
+**Target**: r/googleantigravity
+
+---
+
+### The Tale of Two Mariners
+
+If you follow DeepMind, you know about **"Project Mariner"**—their experimental Gemini 2.0 agent that autonomously surfs the web in Chrome. It's incredible technology. It's also currently **closed access** (Waitlist/AI Ultra).
+
+**We didn't want to wait.**
+
+So we built **K3 Mariner (Community Edition)**.
+
+This is **NOT** Google's internal tool. This is an open-source "Code Agent" built on Hugging Face's `smolagents` library, tuned to run on **Gemini 1.5 Flash** (via LiteLLM) right now, today, on your local machine.
+
+### Why use this?
+
+1. **It Exists**: You can run it today.
+2. **No 404 Errors**: We solved the Gemini API connectivity issues plaguing other frameworks by using "Evergreen" model pointers.
+3. **Transparent Thought**: Includes a "Research Cockpit" (Streamlit UI) that lets you see exactly what the agent is thinking and coding in real-time.
+
+### Features
+
+* **Deep Coder Engine**: Writes Python code to solve problems.
+* **Gemini Native**: Optimized for `gemini-1.5-flash-latest`.
+* **Zero-Config**: `pip install -r requirements.txt` -> `streamlit run app.py`.
+
+### Artifacts Included
+
+I've packaged this up for the community:
+
+* `agent.py`: The core logic (Sanitized & Persona-Injected).
+* `app.py`: The Research Cockpit UI.
+* `smolagents_bible.md`: A 2,000-word reference manual on how to build high-reliability agents with this stack.
+
+### Usage
+
+1. Download the package (Link below).
+2. Install dependencies.
+3. Run the app.
+4. Enter your Google API Key.
+5. *Sail.*
+
+**Download / Repo:** [Link to GitHub/Gist]
+
+*Gravity is optional.*
