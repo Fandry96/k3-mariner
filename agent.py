@@ -47,11 +47,10 @@ class MarinerSearchTool(Tool):
                 return "No results found."
 
             # Format results for the Agent's consumption
+            # Optimization: Use generator expression to save memory
             formatted = "\n".join(
-                [
-                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
-                    for r in results
-                ]
+                f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+                for r in results
             )
             return formatted
 
@@ -68,7 +67,6 @@ class K3MarinerAgent(CodeAgent):
         # 1. API Key Resolution (Standard Env Var)
         api_key = os.getenv("GOOGLE_API_KEY")
 
-        if not api_key:
         if not api_key:
             print("[ERROR] NO API KEY FOUND.")
             print("Please set GOOGLE_API_KEY in a .env file or export it.")
