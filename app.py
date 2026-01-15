@@ -2,6 +2,7 @@ import streamlit as st
 import os
 import sys
 import re
+import time
 from io import StringIO
 from contextlib import contextmanager
 from dotenv import load_dotenv
@@ -89,10 +90,13 @@ def get_agent(_api_key, model_id):
 
 
 # --- CAPTURE UTILS ---
+# Pre-compile the regex globally to avoid recompilation overhead
+ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+
+
 def clean_ansi(text):
     """Removes ANSI escape sequences from text."""
-    ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
-    return ansi_escape.sub("", text)
+    return ANSI_ESCAPE.sub("", text)
 
 
 @contextmanager
@@ -100,18 +104,21 @@ def capture_stdout(placeholder):
     """Redirects stdout to a Streamlit placeholder in real-time."""
     new_out = StringIO()
     old_out = sys.stdout
+    state = {"last_update": 0}
 
     def update():
         # Clean ANSI codes before displaying
         clean_text = clean_ansi(new_out.getvalue())
         placeholder.code(clean_text, language="text")
+        state["last_update"] = time.time()
 
     class RealTimeStream:
         def write(self, s):
             new_out.write(s)
-            # Force update on newline to simulate streaming
+            # Force update on newline to simulate streaming, but throttle to max 10Hz
             if "\n" in s:
-                update()
+                if time.time() - state["last_update"] > 0.1:
+                    update()
 
         def flush(self):
             old_out.flush()
