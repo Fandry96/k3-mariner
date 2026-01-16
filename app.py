@@ -2,6 +2,7 @@ import streamlit as st
 import os
 import sys
 import re
+import time
 from io import StringIO
 from contextlib import contextmanager
 from dotenv import load_dotenv
@@ -101,6 +102,10 @@ def capture_stdout(placeholder):
     new_out = StringIO()
     old_out = sys.stdout
 
+    # State for throttling
+    state = {"last_update_time": 0}
+    UPDATE_INTERVAL = 0.1  # 10Hz limit
+
     def update():
         # Clean ANSI codes before displaying
         clean_text = clean_ansi(new_out.getvalue())
@@ -111,7 +116,10 @@ def capture_stdout(placeholder):
             new_out.write(s)
             # Force update on newline to simulate streaming
             if "\n" in s:
-                update()
+                current_time = time.time()
+                if current_time - state["last_update_time"] > UPDATE_INTERVAL:
+                    update()
+                    state["last_update_time"] = current_time
 
         def flush(self):
             old_out.flush()
