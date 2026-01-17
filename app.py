@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import sys
+import time
 import re
 from io import StringIO
 from contextlib import contextmanager
@@ -100,6 +101,9 @@ def capture_stdout(placeholder):
     """Redirects stdout to a Streamlit placeholder in real-time."""
     new_out = StringIO()
     old_out = sys.stdout
+    last_update_time = 0
+    # Throttling to prevent UI freezing (10Hz max)
+    UPDATE_INTERVAL = 0.1
 
     def update():
         # Clean ANSI codes before displaying
@@ -108,10 +112,13 @@ def capture_stdout(placeholder):
 
     class RealTimeStream:
         def write(self, s):
+            nonlocal last_update_time
             new_out.write(s)
-            # Force update on newline to simulate streaming
-            if "\n" in s:
+            # Force update on newline to simulate streaming, but throttle
+            current_time = time.time()
+            if "\n" in s and (current_time - last_update_time >= UPDATE_INTERVAL):
                 update()
+                last_update_time = current_time
 
         def flush(self):
             old_out.flush()
