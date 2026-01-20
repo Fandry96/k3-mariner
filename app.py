@@ -90,10 +90,14 @@ def get_agent(_api_key, model_id):
 
 
 # --- CAPTURE UTILS ---
+# Pre-compile the ANSI escape regex to avoid recompilation on every call.
+# This improves performance in tight loops like stream processing.
+ANSI_ESCAPE_PATTERN = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+
+
 def clean_ansi(text):
     """Removes ANSI escape sequences from text."""
-    ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
-    return ansi_escape.sub("", text)
+    return ANSI_ESCAPE_PATTERN.sub("", text)
 
 
 @contextmanager
