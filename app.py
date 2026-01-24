@@ -90,10 +90,13 @@ def get_agent(_api_key, model_id):
 
 
 # --- CAPTURE UTILS ---
+# Pre-compile regex at module level to improve performance of frequent calls
+ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+
+
 def clean_ansi(text):
     """Removes ANSI escape sequences from text."""
-    ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
-    return ansi_escape.sub("", text)
+    return ANSI_ESCAPE.sub("", text)
 
 
 @contextmanager
