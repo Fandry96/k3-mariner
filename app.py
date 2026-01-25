@@ -141,11 +141,18 @@ with st.sidebar:
 
     # Standard Env Var
     default_key = os.getenv("GOOGLE_API_KEY", "")
-    api_key = st.text_input("Google API Key", type="password", value=default_key)
+    api_key = st.text_input(
+        "Google API Key",
+        type="password",
+        value=default_key,
+        help="Required for Gemini models. Get one at https://aistudio.google.com",
+    )
 
     # "Evergreen" model pointers
     model_choice = st.selectbox(
-        "Model Core", ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"]
+        "Model Core",
+        ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"],
+        help="Select the Gemini model variant to use for reasoning.",
     )
 
     st.divider()
@@ -153,10 +160,16 @@ with st.sidebar:
 
 st.title("Deep Research Protocol")
 query = st.text_input(
-    "Mission Objective", placeholder="e.g., What is the release date of Gemini 3 Pro?"
+    "Mission Objective",
+    placeholder="e.g., What is the release date of Gemini 3 Pro?",
+    help="Describe your research mission or question. The agent will use web search and code execution to find the answer.",
 )
 
-if st.button("EXECUTE", type="primary"):
+if st.button(
+    "EXECUTE",
+    type="primary",
+    help="Launch the K3 Mariner agent to process your mission objective.",
+):
     if not api_key:
         st.error("API Key required.")
     else:
