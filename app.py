@@ -48,10 +48,13 @@ class MarinerSearchTool(Tool):
     inputs = {"query": {"type": "string", "description": "Search query."}}
     output_type = "string"
 
+    def __init__(self):
+        super().__init__()
+        self.ddgs = DDGS()
+
     def forward(self, query: str) -> str:
         try:
-            with DDGS() as ddgs:
-                results = list(ddgs.text(query, max_results=5))
+            results = list(self.ddgs.text(query, max_results=5))
             if not results:
                 return "No results found."
             return "\n".join(
@@ -90,10 +93,12 @@ def get_agent(_api_key, model_id):
 
 
 # --- CAPTURE UTILS ---
+ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+
+
 def clean_ansi(text):
     """Removes ANSI escape sequences from text."""
-    ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
-    return ansi_escape.sub("", text)
+    return ANSI_ESCAPE.sub("", text)
 
 
 @contextmanager
