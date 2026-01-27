@@ -54,8 +54,12 @@ class MarinerSearchTool(Tool):
                 results = list(ddgs.text(query, max_results=5))
             if not results:
                 return "No results found."
+            # Optimization: Include snippets to reduce agent steps/hallucinations
             return "\n".join(
-                [f"- {r.get('title', '')} ({r.get('href', '')})" for r in results]
+                [
+                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+                    for r in results
+                ]
             )
         except Exception as e:
             return f"Search Error: {e}"
@@ -90,10 +94,12 @@ def get_agent(_api_key, model_id):
 
 
 # --- CAPTURE UTILS ---
+# Optimization: Compile regex once globally to avoid re-compilation overhead in streaming loop
+ANSI_ESCAPE_PATTERN = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+
 def clean_ansi(text):
     """Removes ANSI escape sequences from text."""
-    ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
-    return ansi_escape.sub("", text)
+    return ANSI_ESCAPE_PATTERN.sub("", text)
 
 
 @contextmanager
