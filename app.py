@@ -42,6 +42,13 @@ st.markdown(
 
 
 # --- TOOL DEFINITION ---
+@st.cache_data(ttl=3600)
+def search_ddg(query):
+    """Executes a DuckDuckGo search and caches the result."""
+    with DDGS() as ddgs:
+        return list(ddgs.text(query, max_results=5))
+
+
 class MarinerSearchTool(Tool):
     name = "web_search"
     description = "Searches the web using DuckDuckGo. Returns top 5 results."
@@ -50,8 +57,7 @@ class MarinerSearchTool(Tool):
 
     def forward(self, query: str) -> str:
         try:
-            with DDGS() as ddgs:
-                results = list(ddgs.text(query, max_results=5))
+            results = search_ddg(query)
             if not results:
                 return "No results found."
             return "\n".join(

@@ -1,5 +1,6 @@
 import os
 import sys
+from functools import lru_cache
 from dotenv import load_dotenv
 
 # Framework Imports
@@ -16,6 +17,13 @@ except ImportError:
     DDGS = None
 
 load_dotenv(override=True)
+
+
+@lru_cache(maxsize=10)
+def search_ddg(query):
+    """Executes a DuckDuckGo search and caches the result."""
+    with DDGS() as ddgs:
+        return list(ddgs.text(query, max_results=5))
 
 
 class MarinerSearchTool(Tool):
@@ -40,8 +48,7 @@ class MarinerSearchTool(Tool):
 
         try:
             # max_results=5 provides a good balance of context vs token usage
-            with DDGS() as ddgs:
-                results = list(ddgs.text(query, max_results=5))
+            results = search_ddg(query)
 
             if not results:
                 return "No results found."
@@ -68,7 +75,6 @@ class K3MarinerAgent(CodeAgent):
         # 1. API Key Resolution (Standard Env Var)
         api_key = os.getenv("GOOGLE_API_KEY")
 
-        if not api_key:
         if not api_key:
             print("[ERROR] NO API KEY FOUND.")
             print("Please set GOOGLE_API_KEY in a .env file or export it.")
