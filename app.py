@@ -141,7 +141,12 @@ with st.sidebar:
 
     # Standard Env Var
     default_key = os.getenv("GOOGLE_API_KEY", "")
-    api_key = st.text_input("Google API Key", type="password", value=default_key)
+    api_key = st.text_input(
+        "Google API Key",
+        type="password",
+        value=default_key,
+        help="Get your key at https://aistudio.google.com/app/apikey",
+    )
 
     # "Evergreen" model pointers
     model_choice = st.selectbox(
