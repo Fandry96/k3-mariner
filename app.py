@@ -42,6 +42,12 @@ st.markdown(
 
 
 # --- TOOL DEFINITION ---
+@st.cache_data(show_spinner=False, ttl=3600)
+def search_web(query: str, max_results: int = 5):
+    with DDGS() as ddgs:
+        return list(ddgs.text(query, max_results=max_results))
+
+
 class MarinerSearchTool(Tool):
     name = "web_search"
     description = "Searches the web using DuckDuckGo. Returns top 5 results."
@@ -50,8 +56,7 @@ class MarinerSearchTool(Tool):
 
     def forward(self, query: str) -> str:
         try:
-            with DDGS() as ddgs:
-                results = list(ddgs.text(query, max_results=5))
+            results = search_web(query, max_results=5)
             if not results:
                 return "No results found."
             return "\n".join(
