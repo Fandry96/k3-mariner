@@ -141,11 +141,18 @@ with st.sidebar:
 
     # Standard Env Var
     default_key = os.getenv("GOOGLE_API_KEY", "")
-    api_key = st.text_input("Google API Key", type="password", value=default_key)
+    api_key = st.text_input(
+        "Google API Key",
+        type="password",
+        value=default_key,
+        help="Get your API key from [Google AI Studio](https://aistudio.google.com/app/apikey)",
+    )
 
     # "Evergreen" model pointers
     model_choice = st.selectbox(
-        "Model Core", ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"]
+        "Model Core",
+        ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"],
+        help="Flash: Faster, Cost-effective. Pro: Stronger reasoning capabilities.",
     )
 
     st.divider()
@@ -156,7 +163,7 @@ query = st.text_input(
     "Mission Objective", placeholder="e.g., What is the release date of Gemini 3 Pro?"
 )
 
-if st.button("EXECUTE", type="primary"):
+if st.button("EXECUTE", type="primary", help="Initiate the Deep Research Protocol"):
     if not api_key:
         st.error("API Key required.")
     else:
