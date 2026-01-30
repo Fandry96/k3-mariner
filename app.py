@@ -3,9 +3,19 @@ import os
 import sys
 import re
 import time
+import warnings
+import logging
 from io import StringIO
 from contextlib import contextmanager
 from dotenv import load_dotenv
+
+# Suppress repetitive RuntimeWarning from duckduckgo_search
+logging.captureWarnings(True)
+ddgs_logger = logging.getLogger("py.warnings")
+class DDGSFilter(logging.Filter):
+    def filter(self, record):
+        return "duckduckgo_search" not in record.getMessage()
+ddgs_logger.addFilter(DDGSFilter())
 
 # --- FRAMEWORK INJECTION ---
 try:
@@ -90,10 +100,12 @@ def get_agent(_api_key, model_id):
 
 
 # --- CAPTURE UTILS ---
+ANSI_ESCAPE_PATTERN = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+
+
 def clean_ansi(text):
     """Removes ANSI escape sequences from text."""
-    ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
-    return ansi_escape.sub("", text)
+    return ANSI_ESCAPE_PATTERN.sub("", text)
 
 
 @contextmanager
