@@ -41,6 +41,18 @@ st.markdown(
 )
 
 
+# --- HELPER FUNCTIONS ---
+# Pre-compile regex for performance
+ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def perform_search(query: str):
+    """Cached DuckDuckGo search to prevent redundant network calls."""
+    with DDGS() as ddgs:
+        return list(ddgs.text(query, max_results=5))
+
+
 # --- TOOL DEFINITION ---
 class MarinerSearchTool(Tool):
     name = "web_search"
@@ -50,8 +62,7 @@ class MarinerSearchTool(Tool):
 
     def forward(self, query: str) -> str:
         try:
-            with DDGS() as ddgs:
-                results = list(ddgs.text(query, max_results=5))
+            results = perform_search(query)
             if not results:
                 return "No results found."
             return "\n".join(
@@ -91,9 +102,8 @@ def get_agent(_api_key, model_id):
 
 # --- CAPTURE UTILS ---
 def clean_ansi(text):
-    """Removes ANSI escape sequences from text."""
-    ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
-    return ansi_escape.sub("", text)
+    """Removes ANSI escape sequences from text using pre-compiled regex."""
+    return ANSI_ESCAPE.sub("", text)
 
 
 @contextmanager
