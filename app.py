@@ -3,6 +3,7 @@ import os
 import sys
 import re
 import time
+import logging
 from io import StringIO
 from contextlib import contextmanager
 from dotenv import load_dotenv
@@ -18,6 +19,17 @@ except ImportError:
     st.stop()
 
 load_dotenv(override=True)
+
+# --- WARNING SUPPRESSION ---
+logging.captureWarnings(True)
+
+
+class DDGSWarningFilter(logging.Filter):
+    def filter(self, record):
+        return "renamed to `ddgs`" not in record.getMessage()
+
+
+logging.getLogger("py.warnings").addFilter(DDGSWarningFilter())
 
 # --- CONFIGURATION ---
 st.set_page_config(
@@ -66,7 +78,10 @@ class MarinerSearchTool(Tool):
             if not results:
                 return "No results found."
             return "\n".join(
-                [f"- {r.get('title', '')} ({r.get('href', '')})" for r in results]
+                [
+                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+                    for r in results
+                ]
             )
         except Exception as e:
             return f"Search Error: {e}"
