@@ -3,19 +3,9 @@ import os
 import sys
 import re
 import time
-import warnings
-import logging
 from io import StringIO
 from contextlib import contextmanager
 from dotenv import load_dotenv
-
-# Suppress repetitive RuntimeWarning from duckduckgo_search
-logging.captureWarnings(True)
-ddgs_logger = logging.getLogger("py.warnings")
-class DDGSFilter(logging.Filter):
-    def filter(self, record):
-        return "duckduckgo_search" not in record.getMessage()
-ddgs_logger.addFilter(DDGSFilter())
 
 # --- FRAMEWORK INJECTION ---
 try:

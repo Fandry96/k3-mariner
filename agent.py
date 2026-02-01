@@ -1,16 +1,6 @@
 import os
 import sys
-import warnings
-import logging
 from dotenv import load_dotenv
-
-# Suppress repetitive RuntimeWarning from duckduckgo_search
-logging.captureWarnings(True)
-ddgs_logger = logging.getLogger("py.warnings")
-class DDGSFilter(logging.Filter):
-    def filter(self, record):
-        return "duckduckgo_search" not in record.getMessage()
-ddgs_logger.addFilter(DDGSFilter())
 
 # Framework Imports
 try:
@@ -78,6 +68,7 @@ class K3MarinerAgent(CodeAgent):
         # 1. API Key Resolution (Standard Env Var)
         api_key = os.getenv("GOOGLE_API_KEY")
 
+        if not api_key:
         if not api_key:
             print("[ERROR] NO API KEY FOUND.")
             print("Please set GOOGLE_API_KEY in a .env file or export it.")
