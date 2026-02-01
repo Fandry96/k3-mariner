@@ -69,7 +69,6 @@ class K3MarinerAgent(CodeAgent):
         api_key = os.getenv("GOOGLE_API_KEY")
 
         if not api_key:
-        if not api_key:
             print("[ERROR] NO API KEY FOUND.")
             print("Please set GOOGLE_API_KEY in a .env file or export it.")
             print("Tip: See GUIDE.md for configuration instructions.")
