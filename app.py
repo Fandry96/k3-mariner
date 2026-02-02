@@ -160,7 +160,9 @@ with st.sidebar:
 
     # "Evergreen" model pointers
     model_choice = st.selectbox(
-        "Model Core", ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"]
+        "Model Core",
+        ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"],
+        help="**Flash**: Faster, lower latency.\n\n**Pro**: Better reasoning for complex tasks.",
     )
 
     st.divider()
@@ -168,10 +170,16 @@ with st.sidebar:
 
 st.title("Deep Research Protocol")
 query = st.text_input(
-    "Mission Objective", placeholder="e.g., What is the release date of Gemini 3 Pro?"
+    "Mission Objective",
+    placeholder="e.g., What is the release date of Gemini 3 Pro?",
+    help="Enter a specific research question. The agent will browse the web to find the answer.",
 )
 
-if st.button("EXECUTE", type="primary"):
+if st.button(
+    "EXECUTE",
+    type="primary",
+    help="Launches the autonomous research agent. This process may take a minute.",
+):
     if not api_key:
         st.error("API Key required.")
     else:
