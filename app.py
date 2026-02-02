@@ -66,7 +66,10 @@ class MarinerSearchTool(Tool):
             if not results:
                 return "No results found."
             return "\n".join(
-                [f"- {r.get('title', '')} ({r.get('href', '')})" for r in results]
+                [
+                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+                    for r in results
+                ]
             )
         except Exception as e:
             return f"Search Error: {e}"
