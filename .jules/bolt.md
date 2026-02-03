@@ -5,3 +5,7 @@
 ## 2024-05-24 - Search Caching Strategy
 **Learning:** Web search results (duckduckgo_search) return a generator which must be consumed (converted to list) before caching, otherwise the cache stores an exhausted generator.
 **Action:** When caching generator-based API results, always wrap them in `list()` inside the cached function. Use `@st.cache_data` for persistent Streamlit caching and `@functools.lru_cache` for backend logic.
+
+## 2024-05-25 - Search Snippet Context
+**Learning:** In agent-based search tools, omitting the content snippet ('body') forces the agent to blindly guess or perform extra "visit" steps, significantly degrading end-to-end task performance.
+**Action:** Always include snippets in search tool outputs for LLM agents, even if it increases prompt token usage, as it reduces total round-trips.
