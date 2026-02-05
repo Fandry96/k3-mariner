@@ -167,11 +167,15 @@ with st.sidebar:
     st.metric("Agent Status", "ONLINE" if api_key else "OFFLINE")
 
 st.title("Deep Research Protocol")
-query = st.text_input(
-    "Mission Objective", placeholder="e.g., What is the release date of Gemini 3 Pro?"
-)
 
-if st.button("EXECUTE", type="primary"):
+# 🎨 Palette: Wrapped in a form to enable 'Enter to Submit'
+with st.form(key="search_form", border=False, clear_on_submit=False):
+    query = st.text_input(
+        "Mission Objective", placeholder="e.g., What is the release date of Gemini 3 Pro?"
+    )
+    submitted = st.form_submit_button("EXECUTE", type="primary")
+
+if submitted:
     if not api_key:
         st.error("API Key required.")
     else:
