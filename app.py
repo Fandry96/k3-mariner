@@ -17,8 +17,6 @@ except ImportError:
     )
     st.stop()
 
-load_dotenv(override=True)
-
 # --- CONFIGURATION ---
 st.set_page_config(
     page_title="K3 MARINER | Research Unit",
@@ -26,6 +24,16 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+
+@st.cache_resource
+def load_env():
+    """Load environment variables only once to optimize performance."""
+    # Cache avoids redundant disk I/O and parsing of .env file on every Streamlit rerun
+    load_dotenv(override=True)
+
+
+load_env()
 
 # --- STYLING ---
 st.markdown(
