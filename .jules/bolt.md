@@ -5,3 +5,7 @@
 ## 2024-05-24 - Search Caching Strategy
 **Learning:** Web search results (duckduckgo_search) return a generator which must be consumed (converted to list) before caching, otherwise the cache stores an exhausted generator.
 **Action:** When caching generator-based API results, always wrap them in `list()` inside the cached function. Use `@st.cache_data` for persistent Streamlit caching and `@functools.lru_cache` for backend logic.
+
+## 2024-05-25 - Environment Variable Caching Trade-off
+**Learning:** Caching `load_dotenv` with `@st.cache_resource` improves performance by avoiding redundant file I/O on Streamlit reruns, but prevents live reloading of `.env` changes.
+**Action:** Use cached environment loading for production stability, but advise developers to restart the server or clear cache when modifying `.env` locally.

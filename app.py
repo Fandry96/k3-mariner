@@ -17,7 +17,6 @@ except ImportError:
     )
     st.stop()
 
-load_dotenv(override=True)
 
 # --- CONFIGURATION ---
 st.set_page_config(
@@ -26,6 +25,15 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+
+@st.cache_resource
+def load_env():
+    """Cache environment loading to prevent redundant disk I/O on reruns."""
+    load_dotenv(override=True)
+
+
+load_env()
 
 # --- STYLING ---
 st.markdown(
