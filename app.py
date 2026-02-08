@@ -17,8 +17,6 @@ except ImportError:
     )
     st.stop()
 
-load_dotenv(override=True)
-
 # --- CONFIGURATION ---
 st.set_page_config(
     page_title="K3 MARINER | Research Unit",
@@ -26,6 +24,21 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+
+@st.cache_resource
+def load_env():
+    """
+    Load environment variables from .env file.
+    Cached to prevent redundant disk I/O on every script rerun.
+
+    NOTE: Since this uses st.cache_resource, it must be called AFTER st.set_page_config.
+    Consequently, st.set_page_config cannot rely on variables loaded from .env on the first run.
+    """
+    load_dotenv(override=True)
+
+
+load_env()
 
 # --- STYLING ---
 st.markdown(

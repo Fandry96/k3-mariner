@@ -5,3 +5,7 @@
 ## 2024-05-24 - Search Caching Strategy
 **Learning:** Web search results (duckduckgo_search) return a generator which must be consumed (converted to list) before caching, otherwise the cache stores an exhausted generator.
 **Action:** When caching generator-based API results, always wrap them in `list()` inside the cached function. Use `@st.cache_data` for persistent Streamlit caching and `@functools.lru_cache` for backend logic.
+
+## 2026-02-08 - Streamlit Environment Loading
+**Learning:** `load_dotenv` triggers disk I/O on every Streamlit script rerun, which is redundant for persistent sessions.
+**Action:** Wrap `load_dotenv` in a function decorated with `@st.cache_resource` to execute it only once. Note: This function must be called *after* `st.set_page_config`, meaning `set_page_config` cannot rely on environment variables loaded this way during the initial run.
