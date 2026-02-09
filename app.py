@@ -121,14 +121,14 @@ def capture_stdout(placeholder):
 
         # Only update if enough time has passed or forced
         if force or (current_time - state["last_update_time"] >= UPDATE_INTERVAL):
-            # Clean ANSI codes before displaying
-            clean_text = clean_ansi(new_out.getvalue())
-            placeholder.code(clean_text, language="text")
+            # Display already cleaned text
+            placeholder.code(new_out.getvalue(), language="text")
             state["last_update_time"] = current_time
 
     class RealTimeStream:
         def write(self, s):
-            new_out.write(s)
+            # Clean ANSI codes immediately to avoid O(N^2) processing later
+            new_out.write(clean_ansi(s))
             # Force update on newline to simulate streaming
             if "\n" in s:
                 update()
