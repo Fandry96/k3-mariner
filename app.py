@@ -167,29 +167,34 @@ with st.sidebar:
     st.metric("Agent Status", "ONLINE" if api_key else "OFFLINE")
 
 st.title("Deep Research Protocol")
-query = st.text_input(
-    "Mission Objective", placeholder="e.g., What is the release date of Gemini 3 Pro?"
-)
 
-if st.button("EXECUTE", type="primary"):
-    if not api_key:
-        st.error("API Key required.")
-    else:
-        agent = get_agent(api_key, model_choice)
-        log_container = st.empty()
-        result_container = st.container()
+# 🎨 Palette: Wrapped in st.form to enable "Enter to submit"
+with st.form(key="mission_form", clear_on_submit=False, border=False):
+    query = st.text_input(
+        "Mission Objective",
+        placeholder="e.g., What is the release date of Gemini 3 Pro?",
+    )
 
-        with st.spinner("Mariner is navigating..."):
-            try:
-                # Capture the agent's "Thinking" (stdout)
-                with capture_stdout(log_container):
-                    response = agent.run(query)
+    # Use form_submit_button instead of regular button
+    if st.form_submit_button("EXECUTE", type="primary"):
+        if not api_key:
+            st.error("API Key required.")
+        else:
+            agent = get_agent(api_key, model_choice)
+            log_container = st.empty()
+            result_container = st.container()
 
-                # Display Result
-                with result_container:
-                    st.success("Mission Complete")
-                    st.markdown("### Final Report")
-                    st.markdown(response)
+            with st.spinner("Mariner is navigating..."):
+                try:
+                    # Capture the agent's "Thinking" (stdout)
+                    with capture_stdout(log_container):
+                        response = agent.run(query)
 
-            except Exception as e:
-                st.error(f"Mission Failed: {str(e)}")
+                    # Display Result
+                    with result_container:
+                        st.success("Mission Complete")
+                        st.markdown("### Final Report")
+                        st.markdown(response)
+
+                except Exception as e:
+                    st.error(f"Mission Failed: {str(e)}")
