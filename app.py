@@ -108,8 +108,11 @@ def clean_ansi(text):
 
 @contextmanager
 def capture_stdout(placeholder):
-    """Redirects stdout to a Streamlit placeholder in real-time with throttling."""
-    new_out = StringIO()
+    """Redirects stdout to a Streamlit placeholder in real-time with throttling.
+
+    Optimized: Cleans ANSI codes incrementally (O(N)) instead of on full history (O(N^2)).
+    """
+    clean_out = StringIO()
     old_out = sys.stdout
 
     # State for throttling
@@ -121,14 +124,17 @@ def capture_stdout(placeholder):
 
         # Only update if enough time has passed or forced
         if force or (current_time - state["last_update_time"] >= UPDATE_INTERVAL):
-            # Clean ANSI codes before displaying
-            clean_text = clean_ansi(new_out.getvalue())
-            placeholder.code(clean_text, language="text")
+            # Display clean text directly from buffer (O(1) relative to history processing)
+            placeholder.code(clean_out.getvalue(), language="text")
             state["last_update_time"] = current_time
 
     class RealTimeStream:
         def write(self, s):
-            new_out.write(s)
+            # Clean chunk immediately before buffering
+            # Note: This might split multi-chunk ANSI codes, but prevents UI freeze on large logs.
+            clean_s = clean_ansi(s)
+            clean_out.write(clean_s)
+
             # Force update on newline to simulate streaming
             if "\n" in s:
                 update()
