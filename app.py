@@ -157,6 +157,7 @@ with st.sidebar:
         value=default_key,
         help="Get your key at https://aistudio.google.com/app/apikey",
     )
+    st.caption("[Get your key here](https://aistudio.google.com/app/apikey)")
 
     # "Evergreen" model pointers
     model_choice = st.selectbox(
@@ -167,11 +168,13 @@ with st.sidebar:
     st.metric("Agent Status", "ONLINE" if api_key else "OFFLINE")
 
 st.title("Deep Research Protocol")
-query = st.text_input(
-    "Mission Objective", placeholder="e.g., What is the release date of Gemini 3 Pro?"
-)
+with st.form(key="mission_form", border=False):
+    query = st.text_input(
+        "Mission Objective", placeholder="e.g., What is the release date of Gemini 3 Pro?"
+    )
+    submitted = st.form_submit_button("EXECUTE", type="primary")
 
-if st.button("EXECUTE", type="primary"):
+if submitted:
     if not api_key:
         st.error("API Key required.")
     else:
