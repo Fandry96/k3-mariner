@@ -3,7 +3,6 @@ import os
 import sys
 import re
 import time
-from io import StringIO
 from contextlib import contextmanager
 from dotenv import load_dotenv
 
@@ -109,7 +108,7 @@ def clean_ansi(text):
 @contextmanager
 def capture_stdout(placeholder):
     """Redirects stdout to a Streamlit placeholder in real-time with throttling."""
-    new_out = StringIO()
+    clean_buffer = []
     old_out = sys.stdout
 
     # State for throttling
@@ -122,13 +121,15 @@ def capture_stdout(placeholder):
         # Only update if enough time has passed or forced
         if force or (current_time - state["last_update_time"] >= UPDATE_INTERVAL):
             # Clean ANSI codes before displaying
-            clean_text = clean_ansi(new_out.getvalue())
+            # Optimization: Join pre-cleaned chunks instead of regexing entire history
+            clean_text = "".join(clean_buffer)
             placeholder.code(clean_text, language="text")
             state["last_update_time"] = current_time
 
     class RealTimeStream:
         def write(self, s):
-            new_out.write(s)
+            # Clean incrementally to avoid O(N^2) regex cost
+            clean_buffer.append(clean_ansi(s))
             # Force update on newline to simulate streaming
             if "\n" in s:
                 update()
