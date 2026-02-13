@@ -17,8 +17,6 @@ except ImportError:
     )
     st.stop()
 
-load_dotenv(override=True)
-
 # --- CONFIGURATION ---
 st.set_page_config(
     page_title="K3 MARINER | Research Unit",
@@ -26,6 +24,15 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+
+@st.cache_resource
+def load_env():
+    """Load environment variables once to prevent redundant disk I/O (~20ms per rerun)."""
+    load_dotenv(override=True)
+
+
+load_env()
 
 # --- STYLING ---
 st.markdown(
