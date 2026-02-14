@@ -113,7 +113,11 @@ def capture_stdout(placeholder):
     old_out = sys.stdout
 
     # State for throttling
-    state = {"last_update_time": 0}
+    state = {
+        "last_update_time": 0,
+        "cleaned_log": "",
+        "processed_pos": 0,
+    }
     UPDATE_INTERVAL = 0.1  # 100ms (10Hz)
 
     def update(force=False):
@@ -121,9 +125,15 @@ def capture_stdout(placeholder):
 
         # Only update if enough time has passed or forced
         if force or (current_time - state["last_update_time"] >= UPDATE_INTERVAL):
-            # Clean ANSI codes before displaying
-            clean_text = clean_ansi(new_out.getvalue())
-            placeholder.code(clean_text, language="text")
+            # Clean only new content (Incremental O(N) vs Full O(N^2))
+            full_text = new_out.getvalue()
+            new_chunk = full_text[state["processed_pos"] :]
+
+            if new_chunk:
+                state["cleaned_log"] += clean_ansi(new_chunk)
+                state["processed_pos"] = len(full_text)
+
+            placeholder.code(state["cleaned_log"], language="text")
             state["last_update_time"] = current_time
 
     class RealTimeStream:
