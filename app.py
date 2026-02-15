@@ -108,27 +108,49 @@ def clean_ansi(text):
 
 @contextmanager
 def capture_stdout(placeholder):
-    """Redirects stdout to a Streamlit placeholder in real-time with throttling."""
-    new_out = StringIO()
+    """Redirects stdout to a Streamlit placeholder in real-time with throttling.
+
+    Optimized to clean ANSI codes incrementally, avoiding O(N^2) string processing.
+    """
+    clean_buffer = StringIO()
     old_out = sys.stdout
 
     # State for throttling
     state = {"last_update_time": 0}
     UPDATE_INTERVAL = 0.1  # 100ms (10Hz)
 
+    # State for incremental ANSI cleaning
+    ansi_state = {"incomplete": ""}
+
     def update(force=False):
         current_time = time.time()
 
         # Only update if enough time has passed or forced
         if force or (current_time - state["last_update_time"] >= UPDATE_INTERVAL):
-            # Clean ANSI codes before displaying
-            clean_text = clean_ansi(new_out.getvalue())
-            placeholder.code(clean_text, language="text")
+            # Display cached clean text
+            placeholder.code(clean_buffer.getvalue(), language="text")
             state["last_update_time"] = current_time
 
     class RealTimeStream:
         def write(self, s):
-            new_out.write(s)
+            # Handle potential split ANSI codes (e.g., streaming output)
+            text = s
+            if ansi_state["incomplete"]:
+                text = ansi_state["incomplete"] + text
+                ansi_state["incomplete"] = ""
+
+            # Heuristic: if chunk ends with ESC, buffer it
+            if text.endswith("\x1B"):
+                ansi_state["incomplete"] = "\x1B"
+                text = text[:-1]
+
+            if not text:
+                return
+
+            # Clean the new chunk and append to buffer
+            clean_text = clean_ansi(text)
+            clean_buffer.write(clean_text)
+
             # Force update on newline to simulate streaming
             if "\n" in s:
                 update()
