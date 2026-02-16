@@ -5,3 +5,7 @@
 ## 2024-05-24 - Search Caching Strategy
 **Learning:** Web search results (duckduckgo_search) return a generator which must be consumed (converted to list) before caching, otherwise the cache stores an exhausted generator.
 **Action:** When caching generator-based API results, always wrap them in `list()` inside the cached function. Use `@st.cache_data` for persistent Streamlit caching and `@functools.lru_cache` for backend logic.
+
+## 2024-05-25 - Incremental ANSI Cleaning
+**Learning:** `capture_stdout` implementation that cleans ANSI codes from the *entire* accumulated buffer on every update (O(N^2)) becomes a critical bottleneck for large logs (7s+ for 300KB), even with 10Hz throttling.
+**Action:** Implement incremental cleaning for text streams: clean only the new chunk, buffer incomplete ANSI sequences, and append to a clean output buffer to achieve O(N) complexity (0.05s for same load).

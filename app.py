@@ -110,10 +110,11 @@ def clean_ansi(text):
 def capture_stdout(placeholder):
     """Redirects stdout to a Streamlit placeholder in real-time with throttling."""
     new_out = StringIO()
+    clean_out = StringIO()
     old_out = sys.stdout
 
-    # State for throttling
-    state = {"last_update_time": 0}
+    # State for throttling and incremental processing
+    state = {"last_update_time": 0, "last_pos": 0, "pending": ""}
     UPDATE_INTERVAL = 0.1  # 100ms (10Hz)
 
     def update(force=False):
@@ -121,9 +122,43 @@ def capture_stdout(placeholder):
 
         # Only update if enough time has passed or forced
         if force or (current_time - state["last_update_time"] >= UPDATE_INTERVAL):
-            # Clean ANSI codes before displaying
-            clean_text = clean_ansi(new_out.getvalue())
-            placeholder.code(clean_text, language="text")
+            # Incremental processing
+            new_out.seek(state["last_pos"])
+            chunk = new_out.read()
+            state["last_pos"] = new_out.tell()
+
+            text = state["pending"] + chunk
+
+            if not text and not force:
+                return
+
+            if force:
+                to_process = text
+                state["pending"] = ""
+            else:
+                # Check for split ANSI codes
+                last_esc = text.rfind("\x1B")
+                if last_esc == -1:
+                    to_process = text
+                    state["pending"] = ""
+                else:
+                    candidate = text[last_esc:]
+                    if ANSI_ESCAPE.match(candidate):
+                        to_process = text
+                        state["pending"] = ""
+                    else:
+                        to_process = text[:last_esc]
+                        state["pending"] = candidate
+                        # Safety valve for malformed ANSI
+                        if len(state["pending"]) > 1000:
+                            to_process += state["pending"]
+                            state["pending"] = ""
+
+            if to_process:
+                clean_text = clean_ansi(to_process)
+                clean_out.write(clean_text)
+                placeholder.code(clean_out.getvalue(), language="text")
+
             state["last_update_time"] = current_time
 
     class RealTimeStream:
