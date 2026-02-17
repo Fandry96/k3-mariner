@@ -108,12 +108,15 @@ def clean_ansi(text):
 
 @contextmanager
 def capture_stdout(placeholder):
-    """Redirects stdout to a Streamlit placeholder in real-time with throttling."""
+    """Redirects stdout to a Streamlit placeholder in real-time with incremental ANSI cleaning."""
     new_out = StringIO()
     old_out = sys.stdout
 
-    # State for throttling
-    state = {"last_update_time": 0}
+    # State for throttling and incremental cleaning
+    state = {
+        "last_update_time": 0,
+        "pending_ansi": ""
+    }
     UPDATE_INTERVAL = 0.1  # 100ms (10Hz)
 
     def update(force=False):
@@ -121,14 +124,42 @@ def capture_stdout(placeholder):
 
         # Only update if enough time has passed or forced
         if force or (current_time - state["last_update_time"] >= UPDATE_INTERVAL):
-            # Clean ANSI codes before displaying
-            clean_text = clean_ansi(new_out.getvalue())
-            placeholder.code(clean_text, language="text")
+            # new_out already contains clean text
+            placeholder.code(new_out.getvalue(), language="text")
             state["last_update_time"] = current_time
 
     class RealTimeStream:
         def write(self, s):
-            new_out.write(s)
+            # Incremental ANSI cleaning logic
+            text = state["pending_ansi"] + s
+            last_esc = text.rfind('\x1B')
+
+            if last_esc == -1:
+                new_out.write(text)
+                state["pending_ansi"] = ""
+            else:
+                # Process safe part (before last ESC)
+                safe_part = text[:last_esc]
+                if safe_part:
+                    new_out.write(clean_ansi(safe_part))
+
+                # Process tail (starting with last ESC)
+                tail = text[last_esc:]
+                m = ANSI_ESCAPE.match(tail)
+                if m:
+                    # Complete ANSI code found at the start of tail
+                    # We skip it (cleaning it) and write the rest
+                    new_out.write(tail[m.end():])
+                    state["pending_ansi"] = ""
+                else:
+                    # Incomplete or invalid ANSI
+                    if len(tail) < 30: # Heuristic for max ANSI length
+                        state["pending_ansi"] = tail
+                    else:
+                        # Too long to be a valid ANSI code, likely just text or invalid
+                        new_out.write(tail)
+                        state["pending_ansi"] = ""
+
             # Force update on newline to simulate streaming
             if "\n" in s:
                 update()
@@ -140,6 +171,10 @@ def capture_stdout(placeholder):
     try:
         yield
     finally:
+        # Flush any pending partial ANSI (as raw text)
+        if state["pending_ansi"]:
+            new_out.write(state["pending_ansi"])
+            state["pending_ansi"] = ""
         sys.stdout = old_out
         update(force=True)  # Final flush
 
