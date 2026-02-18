@@ -112,8 +112,12 @@ def capture_stdout(placeholder):
     new_out = StringIO()
     old_out = sys.stdout
 
-    # State for throttling
-    state = {"last_update_time": 0}
+    # State for throttling and buffer management
+    state = {
+        "last_update_time": 0,
+        "cursor_pos": 0,
+        "cleaned_buffer": []
+    }
     UPDATE_INTERVAL = 0.1  # 100ms (10Hz)
 
     def update(force=False):
@@ -121,9 +125,25 @@ def capture_stdout(placeholder):
 
         # Only update if enough time has passed or forced
         if force or (current_time - state["last_update_time"] >= UPDATE_INTERVAL):
-            # Clean ANSI codes before displaying
-            clean_text = clean_ansi(new_out.getvalue())
-            placeholder.code(clean_text, language="text")
+            # Seek to where we left off
+            new_out.seek(state["cursor_pos"])
+            # Read new content
+            new_chunk = new_out.read()
+
+            if new_chunk:
+                # Clean ANSI codes from the new chunk only (O(M))
+                cleaned_chunk = clean_ansi(new_chunk)
+                state["cleaned_buffer"].append(cleaned_chunk)
+                # Mark new position
+                state["cursor_pos"] = new_out.tell()
+
+            # Restore cursor to end for subsequent writes
+            new_out.seek(0, 2)
+
+            # Combine all cleaned chunks for display
+            # Note: Joining is O(N), but regex on full text was O(N) * per-update = O(N^2)
+            full_text = "".join(state["cleaned_buffer"])
+            placeholder.code(full_text, language="text")
             state["last_update_time"] = current_time
 
     class RealTimeStream:
