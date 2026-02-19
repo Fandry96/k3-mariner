@@ -1,3 +1,5 @@
-## 2024-05-23 - API Key Onboarding
-**Learning:** Users often stall at the "API Key" input if they don't know where to get one. Streamlit's `help` tooltip is a low-intrusiveness way to provide this link.
-**Action:** Always include a `help` parameter with a direct URL for any external service credential input.
+# Palette's UX Journal
+
+## 2025-05-15 - Streamlit Keyboard Accessibility
+**Learning:** Streamlit's `st.text_input` does not trigger actions on Enter by default. Users expect "Enter to Submit" for search bars.
+**Action:** Always wrap single-input search/action fields in `st.form` with `border=False` to enable keyboard submission without altering the visual layout.
