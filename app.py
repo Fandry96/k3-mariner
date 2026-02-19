@@ -46,6 +46,34 @@ st.markdown(
 ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
 
+def split_incomplete_ansi(text):
+    """
+    Splits text into (safe_to_clean, pending_ansi) to handle split escape sequences.
+
+    If an ANSI sequence is split across chunks (e.g. ends with \x1B[),
+    we keep the tail pending until the next chunk arrives.
+    """
+    if not text:
+        return "", ""
+    last_esc = text.rfind('\x1B')
+    if last_esc == -1:
+        return text, ""
+
+    tail = text[last_esc:]
+
+    # Safety: If tail is too long, it's not an incomplete escape sequence.
+    if len(tail) > 20:
+        return text, ""
+
+    match = ANSI_ESCAPE.match(tail)
+    if match:
+        # Complete sequence found at the end
+        return text, ""
+    else:
+        # Incomplete or potentially invalid sequence at the end
+        return text[:last_esc], tail
+
+
 @st.cache_data(ttl=3600, show_spinner=False)
 def perform_search(query: str):
     """Cached DuckDuckGo search to prevent redundant network calls."""
@@ -108,27 +136,58 @@ def clean_ansi(text):
 
 @contextmanager
 def capture_stdout(placeholder):
-    """Redirects stdout to a Streamlit placeholder in real-time with throttling."""
-    new_out = StringIO()
+    """
+    Redirects stdout to a Streamlit placeholder in real-time with throttling.
+    Optimized to perform incremental ANSI cleaning (O(N) vs O(N^2)).
+    """
     old_out = sys.stdout
 
-    # State for throttling
-    state = {"last_update_time": 0}
+    # State for throttling and incremental buffering
+    state = {
+        "last_update_time": 0,
+        "cleaned_chunks": [],
+        "pending_ansi": "",
+        "needs_update": False,
+    }
     UPDATE_INTERVAL = 0.1  # 100ms (10Hz)
 
     def update(force=False):
         current_time = time.time()
 
         # Only update if enough time has passed or forced
-        if force or (current_time - state["last_update_time"] >= UPDATE_INTERVAL):
-            # Clean ANSI codes before displaying
-            clean_text = clean_ansi(new_out.getvalue())
-            placeholder.code(clean_text, language="text")
+        if force or (
+            state["needs_update"]
+            and current_time - state["last_update_time"] >= UPDATE_INTERVAL
+        ):
+            full_text = "".join(state["cleaned_chunks"])
+
+            # If forcing update and there's pending content, append it best-effort
+            if force and state["pending_ansi"]:
+                full_text += clean_ansi(state["pending_ansi"])
+
+            placeholder.code(full_text, language="text")
             state["last_update_time"] = current_time
+            state["needs_update"] = False
 
     class RealTimeStream:
         def write(self, s):
-            new_out.write(s)
+            # Ensure input is string
+            if not isinstance(s, str):
+                s = str(s)
+            if not s:
+                return
+
+            # Combine pending fragment with new chunk
+            text_to_process = state["pending_ansi"] + s
+            safe, pending = split_incomplete_ansi(text_to_process)
+
+            if safe:
+                cleaned = clean_ansi(safe)
+                state["cleaned_chunks"].append(cleaned)
+                state["needs_update"] = True
+
+            state["pending_ansi"] = pending
+
             # Force update on newline to simulate streaming
             if "\n" in s:
                 update()
