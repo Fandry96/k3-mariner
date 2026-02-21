@@ -164,14 +164,22 @@ with st.sidebar:
     )
 
     st.divider()
-    st.metric("Agent Status", "ONLINE" if api_key else "OFFLINE")
+    st.metric(
+        "Agent Status",
+        "ONLINE" if api_key else "OFFLINE",
+        help="Indicates if the Agent has a valid API key to operate.",
+    )
 
 st.title("Deep Research Protocol")
-query = st.text_input(
-    "Mission Objective", placeholder="e.g., What is the release date of Gemini 3 Pro?"
-)
+with st.form(key="mission_form", border=False):
+    query = st.text_input(
+        "Mission Objective",
+        placeholder="e.g., What is the release date of Gemini 3 Pro?",
+        help="Enter the research topic you want the agent to investigate.",
+    )
+    submitted = st.form_submit_button("EXECUTE", type="primary")
 
-if st.button("EXECUTE", type="primary"):
+if submitted:
     if not api_key:
         st.error("API Key required.")
     else:
