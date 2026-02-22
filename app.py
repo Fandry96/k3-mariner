@@ -26,6 +26,17 @@ logging.getLogger("py.warnings").addFilter(
 
 load_dotenv(override=True)
 
+# --- WARNING SUPPRESSION ---
+logging.captureWarnings(True)
+
+
+class DDGSWarningFilter(logging.Filter):
+    def filter(self, record):
+        return "renamed to `ddgs`" not in record.getMessage()
+
+
+logging.getLogger("py.warnings").addFilter(DDGSWarningFilter())
+
 # --- CONFIGURATION ---
 st.set_page_config(
     page_title="K3 MARINER | Research Unit",
