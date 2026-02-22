@@ -5,3 +5,5 @@
 ## 2024-05-24 - Streamlit Form Interaction
 **Learning:** Users expect "Enter" to submit text inputs, but Streamlit requires wrapping inputs in `st.form` to enable this without explicit button clicks. Using `border=False` preserves the original visual layout.
 **Action:** Wrap primary search/input fields and their submit buttons in `st.form(key="...", border=False)` to support keyboard-first workflows.
+
+(Note: PR #3941519556 was closed as a duplicate.)
