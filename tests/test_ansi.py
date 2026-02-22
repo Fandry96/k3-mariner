@@ -1,3 +1,7 @@
+"""
+Unit tests for the ANSI cleaning utility in app.py.
+Mocks external dependencies to test logic in isolation.
+"""
 import sys
 import os
 import re
