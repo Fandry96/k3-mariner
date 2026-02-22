@@ -4,4 +4,4 @@
 
 ## 2024-05-24 - Streamlit Form Submission
 **Learning:** Streamlit's default `text_input` + `button` pattern breaks the "Enter to Submit" expectation. Users find it jarring to have to click "Execute" after typing.
-**Action:** Wrap single-input-action pairs in `st.form(clear_on_submit=False, border=False)` to enable keyboard submission without altering the UI.
+**Action:** Wrap single-input-action pairs in `st.form(clear_on_submit=False, border=False)` to enable keyboard submission without altering the UI. Validated with Playwright.
