@@ -9,3 +9,11 @@
 ## 2025-02-23 - Streamlit ANSI Cleaning Optimization
 **Learning:** Cleaning ANSI codes from accumulating logs in `capture_stdout` using `clean_ansi(full_buffer)` is an O(N^2) operation. For long-running agents with verbose output, this causes significant lag.
 **Action:** Implement incremental cleaning: clean new chunks *before* appending to the buffer, making the operation O(N).
+
+## 2026-02-23 - Streamlit Environment Loading Optimization
+**Learning:** Streamlit re-executes the entire script on every user interaction. Calling blocking I/O functions like `load_dotenv` at the module level causes redundant file reads (~1-2ms) on every click, which adds up.
+**Action:** Wrap environment loading and other static initialization in `@st.cache_resource` functions to ensure they only run once per session/server lifetime.
+
+## 2026-02-23 - DuckDuckGo Search Client Reuse
+**Learning:** Creating a new `DDGS()` instance for every search incurs significant overhead (~0.7ms vs ~0.04ms) due to session/SSL setup. Reusing a single `DDGS` instance via `@st.cache_resource` enables connection pooling (Keep-Alive) and dramatically speeds up search execution.
+**Action:** Cache the `DDGS` client using `@st.cache_resource` and reuse it across search calls instead of instantiating it inside the function.
