@@ -24,7 +24,13 @@ logging.getLogger("py.warnings").addFilter(
     lambda record: "duckduckgo_search" not in record.getMessage()
 )
 
-load_dotenv(override=True)
+@st.cache_resource
+def load_env():
+    """Load environment variables only once to avoid file I/O on every rerun."""
+    load_dotenv(override=True)
+
+
+load_env()
 
 # --- WARNING SUPPRESSION ---
 logging.captureWarnings(True)
@@ -64,11 +70,17 @@ st.markdown(
 ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
 
+@st.cache_resource
+def get_search_engine():
+    """Cache the DuckDuckGo search client to reuse the connection pool (Keep-Alive)."""
+    return DDGS()
+
+
 @st.cache_data(ttl=3600, show_spinner=False)
 def perform_search(query: str):
     """Cached DuckDuckGo search to prevent redundant network calls."""
-    with DDGS() as ddgs:
-        return list(ddgs.text(query, max_results=5))
+    ddgs = get_search_engine()
+    return list(ddgs.text(query, max_results=5))
 
 
 # --- TOOL DEFINITION ---
