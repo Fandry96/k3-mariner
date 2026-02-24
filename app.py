@@ -61,7 +61,7 @@ st.markdown(
 
 # --- HELPER FUNCTIONS ---
 # Pre-compile regex for performance
-ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\-_]|\[[0-?]*[ -/]*[@-~])")
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
@@ -93,6 +93,25 @@ class MarinerSearchTool(Tool):
             return f"Search Error: {e}"
 
 
+# --- MARINER PERSONA ---
+MARINER_PERSONA = """
+IDENTITY:
+You are K3 MARINER, an autonomous research unit (Community Edition).
+
+DIRECTIVES:
+1. PRECISION: Your code must be exact. Avoid "hallucinated" imports.
+2. VERIFICATION: Verify information before reporting it as fact.
+3. FORMAT: Use clear, structured output. Use ASCII tables if presenting data.
+4. TONE: Professional, succinct, and cybernetic.
+
+PROTOCOL:
+- When solving a task, always THINK first to plan your approach.
+- Write robust Python code with error handling.
+- If a tool fails, analyze the error and TRY AGAIN with a different strategy.
+- CITE YOUR SOURCES.
+"""
+
+
 # --- AGENT ENGINE ---
 @st.cache_resource
 def get_agent(_api_key, model_id):
@@ -108,17 +127,19 @@ def get_agent(_api_key, model_id):
         max_tokens=8192,
     )
 
-    return CodeAgent(
+    agent = CodeAgent(
         tools=[MarinerSearchTool(), FinalAnswerTool()],
         model=model,
         add_base_tools=False,
         verbosity_level=1,
         max_steps=10,
-        # Mariner Persona
-        # Note: smolagents CodeAgent might expect prompt_templates in recent versions,
-        # but passing it here or handling it via prompt templates is key.
-        # For simplicity in this release, we'll keep it minimal or pass custom args if supported.
     )
+
+    # Inject Mariner Persona into the system prompt
+    # We prepend it to the existing prompt template to preserve tool instructions
+    agent.prompt_templates["system_prompt"] = MARINER_PERSONA + "\n" + agent.prompt_templates["system_prompt"]
+
+    return agent
 
 
 # --- CAPTURE UTILS ---
