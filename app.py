@@ -183,6 +183,10 @@ with st.sidebar:
         value=default_key,
         help="Get your key at https://aistudio.google.com/app/apikey",
     )
+    if not api_key:
+        st.caption(
+            "[Get your Google API Key here](https://aistudio.google.com/app/apikey)"
+        )
 
     # "Evergreen" model pointers
     model_choice = st.selectbox(
