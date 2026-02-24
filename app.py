@@ -18,21 +18,14 @@ except ImportError:
     )
     st.stop()
 
-# Suppress annoying "duckduckgo_search" rename warning
-logging.captureWarnings(True)
-logging.getLogger("py.warnings").addFilter(
-    lambda record: "duckduckgo_search" not in record.getMessage()
-)
-
-load_dotenv(override=True)
-
 # --- WARNING SUPPRESSION ---
 logging.captureWarnings(True)
 
 
 class DDGSWarningFilter(logging.Filter):
     def filter(self, record):
-        return "renamed to `ddgs`" not in record.getMessage()
+        msg = record.getMessage()
+        return "renamed to `ddgs`" not in msg and "duckduckgo_search" not in msg
 
 
 logging.getLogger("py.warnings").addFilter(DDGSWarningFilter())
@@ -44,6 +37,15 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+
+@st.cache_resource
+def load_env():
+    """Cache environment loading to prevent redundant disk I/O on every interaction."""
+    load_dotenv(override=True)
+
+
+load_env()
 
 # --- STYLING ---
 st.markdown(
