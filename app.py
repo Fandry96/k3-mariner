@@ -71,6 +71,15 @@ def perform_search(query: str):
         return list(ddgs.text(query, max_results=5))
 
 
+def format_model_name(model_id):
+    """Maps technical model IDs to user-friendly names."""
+    if "flash" in model_id:
+        return "Gemini Flash (Fast)"
+    elif "pro" in model_id:
+        return "Gemini Pro (Smart)"
+    return model_id
+
+
 # --- TOOL DEFINITION ---
 class MarinerSearchTool(Tool):
     name = "web_search"
@@ -183,10 +192,13 @@ with st.sidebar:
         value=default_key,
         help="Get your key at https://aistudio.google.com/app/apikey",
     )
+    st.caption("Don't have a key? [Get one here](https://aistudio.google.com/app/apikey)")
 
     # "Evergreen" model pointers
     model_choice = st.selectbox(
-        "Model Core", ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"]
+        "Model Core",
+        ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"],
+        format_func=format_model_name,
     )
 
     st.divider()
