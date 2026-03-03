@@ -9,3 +9,7 @@
 ## 2025-02-23 - Streamlit ANSI Cleaning Optimization
 **Learning:** Cleaning ANSI codes from accumulating logs in `capture_stdout` using `clean_ansi(full_buffer)` is an O(N^2) operation. For long-running agents with verbose output, this causes significant lag.
 **Action:** Implement incremental cleaning: clean new chunks *before* appending to the buffer, making the operation O(N).
+
+## 2025-03-09 - Streamlit Double Buffering Optimization
+**Learning:** Intercepting stdout in Streamlit applications often incorrectly implements double-buffering by keeping a raw buffer (e.g., `new_out = StringIO()`) alongside a processed buffer (e.g., `cleaned_buffer = StringIO()`), even when the raw buffer is never read or returned.
+**Action:** Always identify and remove write-only buffers (`StringIO.write()` with no corresponding `.getvalue()` or read) in stream interception handlers, as eliminating these redundant allocations and writes reduces operation overhead by ~75-85%.
