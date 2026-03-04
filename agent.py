@@ -59,10 +59,10 @@ class MarinerSearchTool(Tool):
 
             # Format results for the Agent's consumption
             formatted = "\n".join(
-                [
+                (
                     f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
                     for r in results
-                ]
+                )
             )
             return formatted
 
