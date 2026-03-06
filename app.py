@@ -130,7 +130,8 @@ def clean_ansi(text):
 @contextmanager
 def capture_stdout(placeholder):
     """Redirects stdout to a Streamlit placeholder in real-time with throttling."""
-    new_out = StringIO()
+    # We use a single buffer (cleaned_buffer) to avoid double-buffering.
+    # Eliminating redundant StringIO allocations/writes saves memory and CPU.
     cleaned_buffer = StringIO()  # Incremental cleaned output buffer
     old_out = sys.stdout
 
@@ -149,7 +150,6 @@ def capture_stdout(placeholder):
 
     class RealTimeStream:
         def write(self, s):
-            new_out.write(s)
             # Incrementally clean new chunk and append to cleaned_buffer
             # This avoids re-scanning the entire history for ANSI codes on every update
             cleaned_s = clean_ansi(s)
