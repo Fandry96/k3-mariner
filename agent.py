@@ -1,6 +1,5 @@
 import os
 import sys
-import functools
 from dotenv import load_dotenv
 
 # Framework Imports
@@ -19,17 +18,6 @@ except ImportError:
 load_dotenv(override=True)
 
 
-# Helper function for caching
-@functools.lru_cache(maxsize=128)
-def perform_search(query: str):
-    """Cached search to avoid redundant calls."""
-    if DDGS is None:
-        return None
-    with DDGS() as ddgs:
-        # Return list of dicts
-        return list(ddgs.text(query, max_results=5))
-
-
 class MarinerSearchTool(Tool):
     name = "web_search"
     description = (
@@ -43,16 +31,20 @@ class MarinerSearchTool(Tool):
     }
     output_type = "string"
 
+    def __init__(self):
+        super().__init__()
+        self.ddgs = DDGS() if DDGS else None
+
     def forward(self, query: str) -> str:
         """
         Executes the search with error handling for rate limits.
         """
-        if DDGS is None:
+        if self.ddgs is None:
             return "ERROR: 'duckduckgo_search' library is missing."
 
         try:
             # max_results=5 provides a good balance of context vs token usage
-            results = perform_search(query)
+            results = list(self.ddgs.text(query, max_results=5))
 
             if not results:
                 return "No results found."
