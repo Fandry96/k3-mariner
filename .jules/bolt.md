@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2025-03-01 - DuckDuckGo Search Connection Pooling
+**Learning:** Instantiating a new `duckduckgo_search.DDGS()` context for every search query (e.g., `with DDGS() as ddgs:`) destroys the underlying HTTP connection pool. This forces every new search to perform fresh DNS, TCP, and TLS handshakes, which significantly slows down un-cached searches.
+**Action:** Always maintain and reuse a persistent `DDGS()` instance across multiple searches to retain connection pooling and reuse TCP/TLS sessions for optimal performance. Additionally, applying `@functools.lru_cache` to an instance method (where `self` is the class instance and the query is a string) is a perfectly safe and highly effective caching mechanism because user-defined class instances and strings are hashable.
