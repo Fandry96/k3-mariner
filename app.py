@@ -183,10 +183,17 @@ with st.sidebar:
         value=default_key,
         help="Get your key at https://aistudio.google.com/app/apikey",
     )
+    if not api_key:
+        st.caption("🔑 [Get a Google API Key here](https://aistudio.google.com/app/apikey)")
 
     # "Evergreen" model pointers
     model_choice = st.selectbox(
-        "Model Core", ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"]
+        "Model Core",
+        ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"],
+        format_func=lambda x: {
+            "gemini/gemini-flash-latest": "Gemini Flash (Fast)",
+            "gemini/gemini-pro-latest": "Gemini Pro (Smart)"
+        }.get(x, x)
     )
 
     st.divider()
