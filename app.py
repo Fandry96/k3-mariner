@@ -64,11 +64,19 @@ st.markdown(
 ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
 
+@st.cache_resource
+def get_ddgs_client():
+    return DDGS()
+
+
 @st.cache_data(ttl=3600, show_spinner=False)
 def perform_search(query: str):
     """Cached DuckDuckGo search to prevent redundant network calls."""
-    with DDGS() as ddgs:
-        return list(ddgs.text(query, max_results=5))
+    # ⚡ Bolt: Use a persistent DDGS instance instead of a new context per search.
+    # This avoids destroying the HTTP connection pool, saving DNS/TCP/TLS handshakes
+    # and improving un-cached search performance significantly.
+    ddgs = get_ddgs_client()
+    return list(ddgs.text(query, max_results=5))
 
 
 # --- TOOL DEFINITION ---
