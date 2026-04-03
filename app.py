@@ -164,7 +164,7 @@ def capture_stdout(placeholder):
 
     sys.stdout = RealTimeStream()
     try:
-        yield
+        yield cleaned_buffer
     finally:
         sys.stdout = old_out
         update(force=True)  # Final flush
@@ -200,25 +200,39 @@ with st.form(key="mission_form", border=False):
     )
     submit_button = st.form_submit_button("EXECUTE", type="primary")
 
+# ⚡ Bolt: Initialize session state to decouple execution from rendering
+if "last_response" not in st.session_state:
+    st.session_state.last_response = None
+    st.session_state.last_logs = ""
+
 if submit_button:
     if not api_key:
         st.error("API Key required.")
     else:
         agent = get_agent(api_key, model_choice)
         log_container = st.empty()
-        result_container = st.container()
 
         with st.spinner("Mariner is navigating..."):
             try:
                 # Capture the agent's "Thinking" (stdout)
-                with capture_stdout(log_container):
+                with capture_stdout(log_container) as buffer:
                     response = agent.run(query)
 
-                # Display Result
-                with result_container:
-                    st.success("Mission Complete")
-                    st.markdown("### Final Report")
-                    st.markdown(response)
+                # ⚡ Bolt: Persist agent results to session state to prevent
+                # redundant and expensive API executions across UI reruns.
+                st.session_state.last_response = response
+                st.session_state.last_logs = buffer.getvalue()
 
+                log_container.empty() # Clear temporary execution logs
             except Exception as e:
+                # Clear previous state on failure
+                st.session_state.last_response = None
+                st.session_state.last_logs = ""
                 st.error(f"Mission Failed: {str(e)}")
+
+# ⚡ Bolt: Decoupled persistent display block
+if st.session_state.last_response:
+    st.code(st.session_state.last_logs, language="text")
+    st.success("Mission Complete")
+    st.markdown("### Final Report")
+    st.markdown(st.session_state.last_response)
