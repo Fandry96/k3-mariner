@@ -5,3 +5,7 @@
 ## 2024-05-23 - Mapping Technical IDs to User-Friendly Display Names
 **Learning:** Users can be confused by technical IDs in selectboxes (e.g., "gemini/gemini-flash-latest"). Using the `format_func` parameter in Streamlit's `selectbox` widget maps technical identifiers to user-friendly display names without altering the underlying return values.
 **Action:** Always use a mapping dictionary and `format_func` in `selectbox` for technical IDs to ensure clarity for users while maintaining backend functionality.
+
+## 2024-05-24 - Empty State Credential Links
+**Learning:** Tooltips (`help`) are often missed by users when an input is completely empty, leading to abandonment during onboarding.
+**Action:** Conditionally display a direct Markdown link via `st.caption` below critical inputs when they are empty, in addition to the tooltip.
