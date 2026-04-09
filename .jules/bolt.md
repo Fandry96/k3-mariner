@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2025-03-02 - Agent In-Memory Caching Anti-Pattern
+**Learning:** Initializing stateful clients (like `duckduckgo_search.DDGS`) repeatedly or issuing redundant identical API requests within a single run severely degrades performance and risks rate-limiting. Conversely, caching methods containing `self` using `@functools.lru_cache` causes instance-level memory leaks.
+**Action:** When caching agent tool operations locally, establish a bounded dictionary (e.g., `self._cache = {}`) inside `__init__`, manually check `query in self._cache` in `forward`, and enforce size limits (`if len(self._cache) > X: self._cache.clear()`).
