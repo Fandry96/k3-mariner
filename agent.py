@@ -34,6 +34,7 @@ class MarinerSearchTool(Tool):
     def __init__(self):
         super().__init__()
         self.ddgs = DDGS() if DDGS else None
+        self._cache = {}
 
     def forward(self, query: str) -> str:
         """
@@ -41,6 +42,9 @@ class MarinerSearchTool(Tool):
         """
         if self.ddgs is None:
             return "ERROR: 'duckduckgo_search' library is missing."
+
+        if query in self._cache:
+            return self._cache[query]
 
         try:
             # max_results=5 provides a good balance of context vs token usage
@@ -50,12 +54,21 @@ class MarinerSearchTool(Tool):
                 return "No results found."
 
             # Format results for the Agent's consumption
+            # ⚡ Bolt: Using generator expression `( )` instead of list comprehension `[ ]`
+            # to reduce peak memory allocations during string formatting.
             formatted = "\n".join(
-                [
+                (
                     f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
                     for r in results
-                ]
+                )
             )
+
+            # ⚡ Bolt: Bounded instance cache avoids repeated ~500ms network calls.
+            # Limited to 50 items to prevent memory leaks over long sessions.
+            if len(self._cache) > 50:
+                self._cache.clear()
+            self._cache[query] = formatted
+
             return formatted
 
         except Exception as e:

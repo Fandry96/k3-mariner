@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2025-03-09 - Agent Tool Caching & Generator Expressions
+**Learning:** Applying `@functools.lru_cache` to instance methods (like agent tools) caches `self`, leading to memory leaks. Additionally, while list comprehensions inside `str.join()` are ~17-30% faster in Python 3.12, this codebase prioritizes generator expressions to minimize peak memory usage during large search result formatting.
+**Action:** Use bounded instance dictionaries (`self._cache = {}`) with a size limit (e.g., 50) for caching tool outputs to prevent memory leaks. Always use generator expressions `( )` instead of list comprehensions `[ ]` within `str.join()` for formatting results to adhere to the codebase's memory-first priority.
