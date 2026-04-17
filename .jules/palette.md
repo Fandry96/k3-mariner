@@ -5,3 +5,7 @@
 ## 2024-05-23 - Mapping Technical IDs to User-Friendly Display Names
 **Learning:** Users can be confused by technical IDs in selectboxes (e.g., "gemini/gemini-flash-latest"). Using the `format_func` parameter in Streamlit's `selectbox` widget maps technical identifiers to user-friendly display names without altering the underlying return values.
 **Action:** Always use a mapping dictionary and `format_func` in `selectbox` for technical IDs to ensure clarity for users while maintaining backend functionality.
+
+## 2024-05-23 - Disabled Execution Button Context
+**Learning:** Disabling the main action button (e.g., EXECUTE) without context leaves users wondering if the app is broken. In Streamlit, a disabled button cannot have an `st.caption` adjacent to it in the same layout slot easily, but it *can* take a `help` parameter which renders as a tooltip.
+**Action:** Whenever conditionally disabling a core action button in Streamlit, always conditionally supply a `help` tooltip explaining exactly why it is disabled (e.g., "Requires API Key").
