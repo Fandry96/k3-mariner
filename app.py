@@ -184,9 +184,18 @@ with st.sidebar:
         help="Get your key at https://aistudio.google.com/app/apikey",
     )
 
+    if not api_key:
+        st.caption("Don't have an API key? [Get one here](https://aistudio.google.com/app/apikey)")
+
     # "Evergreen" model pointers
+    MODEL_DISPLAY_NAMES = {
+        "gemini/gemini-flash-latest": "Gemini Flash (Latest)",
+        "gemini/gemini-pro-latest": "Gemini Pro (Latest)",
+    }
     model_choice = st.selectbox(
-        "Model Core", ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"]
+        "Model Core",
+        ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"],
+        format_func=lambda x: MODEL_DISPLAY_NAMES.get(x, x)
     )
 
     st.divider()
@@ -198,7 +207,12 @@ with st.form(key="mission_form", border=False):
         "Mission Objective",
         placeholder="e.g., What is the release date of Gemini 3 Pro?",
     )
-    submit_button = st.form_submit_button("EXECUTE", type="primary")
+    submit_button = st.form_submit_button(
+        "EXECUTE",
+        type="primary",
+        disabled=not api_key,
+        help="API Key required to execute mission" if not api_key else None
+    )
 
 if submit_button:
     if not api_key:
