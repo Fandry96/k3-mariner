@@ -5,3 +5,7 @@
 ## 2024-05-23 - Mapping Technical IDs to User-Friendly Display Names
 **Learning:** Users can be confused by technical IDs in selectboxes (e.g., "gemini/gemini-flash-latest"). Using the `format_func` parameter in Streamlit's `selectbox` widget maps technical identifiers to user-friendly display names without altering the underlying return values.
 **Action:** Always use a mapping dictionary and `format_func` in `selectbox` for technical IDs to ensure clarity for users while maintaining backend functionality.
+
+## 2024-05-24 - Disabled State Accessibility & Empty State Fallbacks
+**Learning:** Disabling interactive elements without explanation confuses users, and tooltips on empty inputs might be missed. Conditionally displaying inline helper text (like `st.caption`) and adding a `help` tooltip to disabled buttons provides immediate, clear pathways to resolve the blocked state.
+**Action:** When an input is empty and blocks progress, conditionally show an inline link. When disabling a submit button, always add a `help` parameter explaining the requirement.
