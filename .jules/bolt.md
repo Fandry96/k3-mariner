@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2025-04-19 - Bounded Caching and Generator Memory Optimization
+**Learning:** For long-lived agent instances, unbounded instance-level caching causes slow memory leaks. Additionally, while list comprehensions are slightly faster, generator expressions are preferred in this codebase for `str.join()` to minimize peak memory usage when formatting search results.
+**Action:** Always enforce a bounded limit on instance caches (e.g., `if len(self._cache) > 50: self._cache.clear()`) and use generator expressions for string formatting consistently across identical classes.
