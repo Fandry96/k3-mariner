@@ -5,3 +5,7 @@
 ## 2024-05-23 - Mapping Technical IDs to User-Friendly Display Names
 **Learning:** Users can be confused by technical IDs in selectboxes (e.g., "gemini/gemini-flash-latest"). Using the `format_func` parameter in Streamlit's `selectbox` widget maps technical identifiers to user-friendly display names without altering the underlying return values.
 **Action:** Always use a mapping dictionary and `format_func` in `selectbox` for technical IDs to ensure clarity for users while maintaining backend functionality.
+
+## 2024-05-23 - Streamlit Component Feature Compatibility
+**Learning:** When disabling standard interactive elements in Streamlit, always provide a `help` tooltip. However, NEVER use `disabled` or `help` parameters on `st.form_submit_button`, as this causes fatal 'Missing Submit Button' errors due to strict compatibility constraints with older Streamlit versions (< 1.38.0).
+**Action:** Always verify if a function parameter exists for a specific Streamlit version using `inspect.signature(func).parameters` before assuming it's supported, especially for core form components.

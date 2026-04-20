@@ -181,12 +181,20 @@ with st.sidebar:
         "Google API Key",
         type="password",
         value=default_key,
-        help="Get your key at https://aistudio.google.com/app/apikey",
+        help="Get your key at [Google AI Studio](https://aistudio.google.com/app/apikey)",
     )
+    if not api_key:
+        st.caption("🔑 [Get a free Google API Key](https://aistudio.google.com/app/apikey)")
 
     # "Evergreen" model pointers
+    MODEL_DISPLAY_NAMES = {
+        "gemini/gemini-flash-latest": "Gemini Flash (Fast)",
+        "gemini/gemini-pro-latest": "Gemini Pro (Advanced)",
+    }
     model_choice = st.selectbox(
-        "Model Core", ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"]
+        "Model Core",
+        options=list(MODEL_DISPLAY_NAMES.keys()),
+        format_func=lambda x: MODEL_DISPLAY_NAMES.get(x, x)
     )
 
     st.divider()
@@ -198,7 +206,11 @@ with st.form(key="mission_form", border=False):
         "Mission Objective",
         placeholder="e.g., What is the release date of Gemini 3 Pro?",
     )
-    submit_button = st.form_submit_button("EXECUTE", type="primary")
+    submit_button = st.form_submit_button(
+        "EXECUTE",
+        type="primary",
+        help="Please enter your Google API Key in the sidebar to execute a mission." if not api_key else "Execute research mission"
+    )
 
 if submit_button:
     if not api_key:
