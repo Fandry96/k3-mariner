@@ -78,17 +78,35 @@ class MarinerSearchTool(Tool):
     inputs = {"query": {"type": "string", "description": "Search query."}}
     output_type = "string"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # ⚡ Bolt: Bounded cache for tool results to avoid redundant API calls within an agent loop
+        self._cache = {}
+
     def forward(self, query: str) -> str:
+        # ⚡ Bolt: Return cached result if query has been searched before
+        if query in self._cache:
+            return self._cache[query]
+
         try:
             results = perform_search(query)
             if not results:
-                return "No results found."
-            return "\n".join(
-                [
-                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
-                    for r in results
-                ]
-            )
+                res = "No results found."
+            else:
+                # ⚡ Bolt: Swapped list comprehension for a generator expression to reduce peak memory
+                res = "\n".join(
+                    (
+                        f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+                        for r in results
+                    )
+                )
+
+            # ⚡ Bolt: Prevent unbounded cache growth
+            if len(self._cache) > 50:
+                self._cache.clear()
+            self._cache[query] = res
+
+            return res
         except Exception as e:
             return f"Search Error: {e}"
 
