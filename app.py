@@ -78,17 +78,35 @@ class MarinerSearchTool(Tool):
     inputs = {"query": {"type": "string", "description": "Search query."}}
     output_type = "string"
 
+    def __init__(self):
+        super().__init__()
+        # ⚡ Bolt: Cache local searches to avoid redundant queries
+        self._cache = {}
+
     def forward(self, query: str) -> str:
+        # ⚡ Bolt: Return cached response if available
+        if query in self._cache:
+            return self._cache[query]
+
         try:
             results = perform_search(query)
             if not results:
-                return "No results found."
-            return "\n".join(
-                [
-                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
-                    for r in results
-                ]
-            )
+                formatted = "No results found."
+            else:
+                # ⚡ Bolt: Generator expression to reduce memory allocation
+                formatted = "\n".join(
+                    (
+                        f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+                        for r in results
+                    )
+                )
+
+            # ⚡ Bolt: Safely update cache and bound its size
+            self._cache[query] = formatted
+            if len(self._cache) > 50:
+                self._cache.clear()
+            return formatted
+
         except Exception as e:
             return f"Search Error: {e}"
 
