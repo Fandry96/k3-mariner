@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2025-03-01 - Bounded Dictionary Cache KeyError Anti-Pattern
+**Learning:** When implementing a bounded dictionary cache for agent tools, returning the value directly from the cache immediately after enforcing the size limit (which clears the cache) will trigger a `KeyError` if the bounds condition is met. Unbounded caching on instance methods also causes memory leaks in long-lived agents.
+**Action:** Always assign the computed result to a local variable first, update the cache, enforce the bounds (e.g., `if len(self._cache) > 50: self._cache.clear()`), and return the local variable instead of the cache lookup. Ensure this caching strategy and memory optimizations like generator expressions are applied consistently across all duplicate tool classes in the codebase.
