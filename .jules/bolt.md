@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2025-04-26 - [Agent Search Cache Optimization]
+**Learning:** Agent tool definitions across `agent.py` and `app.py` process search results using an O(n) list comprehension inside string joining. By implementing a bounded instance-level dictionary cache (`self._cache`) for duplicate queries, network-bound search calls (~250-500ms) can be resolved instantaneously. When limiting the size (e.g. `len(_cache) > 50`) it is critical to save the computed result locally first before potentially clearing the cache to avoid `KeyError`s. Also, using generator expressions instead of list comprehensions when building the final `\n.join(...)` avoids intermediate memory allocations.
+**Action:** Use an instance dictionary cache for agent tools, enforce bounded sizes for safety, and switch to generator expressions in `str.join()` formatting. Apply optimizations uniformly across duplicated components in the codebase.
