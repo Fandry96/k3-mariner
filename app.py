@@ -185,8 +185,15 @@ with st.sidebar:
     )
 
     # "Evergreen" model pointers
+    model_mapping = {
+        "gemini/gemini-flash-latest": "Gemini Flash (Fast)",
+        "gemini/gemini-pro-latest": "Gemini Pro (Advanced)"
+    }
     model_choice = st.selectbox(
-        "Model Core", ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"]
+        "Model Core",
+        options=list(model_mapping.keys()),
+        format_func=lambda x: model_mapping.get(x, x),
+        help="Select the AI engine. Flash is faster; Pro handles complex reasoning."
     )
 
     st.divider()
