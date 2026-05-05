@@ -203,6 +203,8 @@ with st.form(key="mission_form", border=False):
 if submit_button:
     if not api_key:
         st.error("API Key required.")
+    elif not query.strip():
+        st.warning("Please enter a Mission Objective to execute.")
     else:
         agent = get_agent(api_key, model_choice)
         log_container = st.empty()
