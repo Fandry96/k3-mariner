@@ -5,3 +5,7 @@
 ## 2024-05-23 - Mapping Technical IDs to User-Friendly Display Names
 **Learning:** Users can be confused by technical IDs in selectboxes (e.g., "gemini/gemini-flash-latest"). Using the `format_func` parameter in Streamlit's `selectbox` widget maps technical identifiers to user-friendly display names without altering the underlying return values.
 **Action:** Always use a mapping dictionary and `format_func` in `selectbox` for technical IDs to ensure clarity for users while maintaining backend functionality.
+
+## 2024-05-24 - Empty Form Validation Feedback
+**Learning:** Users who accidentally click submit on an empty text input face a confusing lack of response or an error from the backend. Streamlit's `st.warning` provides clear inline feedback for missing required fields without blocking the UI with hard errors.
+**Action:** Always validate required text inputs before processing, using `st.warning` for clear inline feedback.
