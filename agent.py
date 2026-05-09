@@ -31,14 +31,18 @@ class MarinerSearchTool(Tool):
     }
     output_type = "string"
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.ddgs = DDGS() if DDGS else None
+        self._cache = {}
 
     def forward(self, query: str) -> str:
         """
         Executes the search with error handling for rate limits.
         """
+        if query in self._cache:
+            return self._cache[query]
+
         if self.ddgs is None:
             return "ERROR: 'duckduckgo_search' library is missing."
 
@@ -49,13 +53,17 @@ class MarinerSearchTool(Tool):
             if not results:
                 return "No results found."
 
-            # Format results for the Agent's consumption
+            # ⚡ Bolt: Cache tool outputs in a bounded dictionary to avoid redundant
+            # network queries within the same agent execution run.
             formatted = "\n".join(
                 [
                     f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
                     for r in results
                 ]
             )
+            self._cache[query] = formatted
+            if len(self._cache) > 50:
+                self._cache.pop(next(iter(self._cache)))
             return formatted
 
         except Exception as e:
