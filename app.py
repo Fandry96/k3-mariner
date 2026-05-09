@@ -78,17 +78,30 @@ class MarinerSearchTool(Tool):
     inputs = {"query": {"type": "string", "description": "Search query."}}
     output_type = "string"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._cache = {}
+
     def forward(self, query: str) -> str:
+        if query in self._cache:
+            return self._cache[query]
         try:
             results = perform_search(query)
             if not results:
                 return "No results found."
-            return "\n".join(
+
+            # ⚡ Bolt: Cache tool outputs in a bounded dictionary to avoid Streamlit
+            # API overhead and redundant searches for identical queries within the same agent run.
+            formatted_result = "\n".join(
                 [
                     f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
                     for r in results
                 ]
             )
+            self._cache[query] = formatted_result
+            if len(self._cache) > 50:
+                self._cache.pop(next(iter(self._cache)))
+            return formatted_result
         except Exception as e:
             return f"Search Error: {e}"
 
