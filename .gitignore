@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+streamlit.log
+verification.png
+verification2.png
+verify_app.py
+verify_app2.py
