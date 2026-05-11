@@ -78,17 +78,32 @@ class MarinerSearchTool(Tool):
     inputs = {"query": {"type": "string", "description": "Search query."}}
     output_type = "string"
 
+    def __init__(self):
+        super().__init__()
+        self._cache = {}
+
     def forward(self, query: str) -> str:
+        # ⚡ Bolt: Check instance-level dictionary cache first to bypass
+        # Streamlit API overhead for repeated identical agent queries
+        if query in self._cache:
+            return self._cache[query]
+
         try:
             results = perform_search(query)
             if not results:
                 return "No results found."
-            return "\n".join(
+            formatted = "\n".join(
                 [
                     f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
                     for r in results
                 ]
             )
+            # ⚡ Bolt: Cache successful results and enforce an LRU-style upper bound
+            # of 50 items to prevent unbounded memory growth during long sessions
+            self._cache[query] = formatted
+            if len(self._cache) > 50:
+                self._cache.pop(next(iter(self._cache)))
+            return formatted
         except Exception as e:
             return f"Search Error: {e}"
 
