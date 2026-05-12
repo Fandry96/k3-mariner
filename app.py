@@ -78,17 +78,33 @@ class MarinerSearchTool(Tool):
     inputs = {"query": {"type": "string", "description": "Search query."}}
     output_type = "string"
 
+    def __init__(self):
+        super().__init__()
+        self._cache = {}
+
     def forward(self, query: str) -> str:
+        if query in self._cache:
+            # ⚡ Bolt: Bypasses Streamlit API overhead for duplicate queries within the same agent session.
+            return self._cache[query]
+
         try:
             results = perform_search(query)
             if not results:
-                return "No results found."
-            return "\n".join(
+                res = "No results found."
+                self._cache[query] = res
+                if len(self._cache) > 50:
+                    self._cache.pop(next(iter(self._cache)))
+                return res
+            res = "\n".join(
                 [
                     f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
                     for r in results
                 ]
             )
+            self._cache[query] = res
+            if len(self._cache) > 50:
+                self._cache.pop(next(iter(self._cache)))
+            return res
         except Exception as e:
             return f"Search Error: {e}"
 
