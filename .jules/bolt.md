@@ -13,3 +13,6 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+## 2024-05-15 - Dictionary Caching for Agent Tools
+**Learning:** Using dictionary caching with bounded limits for Tool outputs prevents redundant agent network calls within the same run. Transient failures (like "Search Error") must not be cached to avoid poisoning the agent's retry capability. Identical tools in app.py and agent.py require consistent implementation.
+**Action:** Add `self._cache = {}` with LRU eviction `if len(self._cache) > 50: self._cache.pop(next(iter(self._cache)))` to `MarinerSearchTool` consistently.
