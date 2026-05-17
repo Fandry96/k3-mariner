@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2025-03-01 - Bounded Instance Caching for Agent Tools
+**Learning:** `functools.lru_cache` on class methods holds references to `self`, causing memory leaks. Unbounded dictionary caching can lead to unbounded memory growth and cache thrashing. Furthermore, caching Streamlit API calls (like `@st.cache_data`) still incurs Streamlit API overhead compared to pure python dict lookups within a single agent execution run. Error responses must be excluded from caches to prevent poisoning.
+**Action:** Implement bounded, instance-level dictionary caching (`self._cache = {}`) with LRU-style eviction for agent tools (e.g., web searches). Assign computed results to local variables before updating the cache, enforcing bounds, and returning to avoid KeyErrors upon cache eviction.

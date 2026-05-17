@@ -78,17 +78,31 @@ class MarinerSearchTool(Tool):
     inputs = {"query": {"type": "string", "description": "Search query."}}
     output_type = "string"
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._cache = {}
+
     def forward(self, query: str) -> str:
+        if query in self._cache:
+            # ⚡ Bolt: Cache hit, skipping execution
+            return self._cache[query]
         try:
             results = perform_search(query)
             if not results:
-                return "No results found."
-            return "\n".join(
-                [
-                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
-                    for r in results
-                ]
-            )
+                res = "No results found."
+            else:
+                res = "\n".join(
+                    [
+                        f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+                        for r in results
+                    ]
+                )
+
+            # ⚡ Bolt: Store in bounded dictionary cache to prevent memory leaks from @functools.lru_cache and bypass Streamlit's API overhead
+            self._cache[query] = res
+            if len(self._cache) > 50:
+                self._cache.pop(next(iter(self._cache)))
+            return res
         except Exception as e:
             return f"Search Error: {e}"
 
