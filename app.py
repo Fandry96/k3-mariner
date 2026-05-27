@@ -78,17 +78,34 @@ class MarinerSearchTool(Tool):
     inputs = {"query": {"type": "string", "description": "Search query."}}
     output_type = "string"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # ⚡ Bolt: Instance-level dictionary cache to prevent redundant search API calls
+        # during the same agent execution loop (e.g. for identical sub-queries).
+        self._cache = {}
+
     def forward(self, query: str) -> str:
+        # ⚡ Bolt: O(1) in-memory lookup. Yields instant results for duplicate queries.
+        if query in self._cache:
+            return self._cache[query]
+
         try:
             results = perform_search(query)
             if not results:
-                return "No results found."
-            return "\n".join(
-                [
-                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
-                    for r in results
-                ]
-            )
+                res = "No results found."
+            else:
+                res = "\n".join(
+                    [
+                        f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+                        for r in results
+                    ]
+                )
+
+            # ⚡ Bolt: Store successful searches and bound memory usage to 50 items using FIFO eviction
+            self._cache[query] = res
+            if len(self._cache) > 50:
+                self._cache.pop(next(iter(self._cache)))
+            return res
         except Exception as e:
             return f"Search Error: {e}"
 
