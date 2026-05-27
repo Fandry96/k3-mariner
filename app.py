@@ -185,8 +185,14 @@ with st.sidebar:
     )
 
     # "Evergreen" model pointers
+    MODEL_DISPLAY_NAMES = {
+        "gemini/gemini-flash-latest": "Gemini Flash (Fast)",
+        "gemini/gemini-pro-latest": "Gemini Pro (Advanced)"
+    }
     model_choice = st.selectbox(
-        "Model Core", ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"]
+        "Model Core",
+        options=list(MODEL_DISPLAY_NAMES.keys()),
+        format_func=lambda x: MODEL_DISPLAY_NAMES.get(x, x)
     )
 
     st.divider()
@@ -203,6 +209,8 @@ with st.form(key="mission_form", border=False):
 if submit_button:
     if not api_key:
         st.error("API Key required.")
+    elif not query.strip():
+        st.warning("Please enter a Mission Objective to execute.")
     else:
         agent = get_agent(api_key, model_choice)
         log_container = st.empty()
