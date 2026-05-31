@@ -198,12 +198,15 @@ with st.form(key="mission_form", border=False):
         "Mission Objective",
         placeholder="e.g., What is the release date of Gemini 3 Pro?",
     )
-    submit_button = st.form_submit_button("EXECUTE", type="primary")
+    submit_button = st.form_submit_button(
+        "EXECUTE",
+        type="primary",
+        disabled=not api_key,
+        help="Please enter your Google API Key in the sidebar to execute a mission." if not api_key else "Start the research protocol"
+    )
 
 if submit_button:
-    if not api_key:
-        st.error("API Key required.")
-    else:
+    if api_key:
         agent = get_agent(api_key, model_choice)
         log_container = st.empty()
         result_container = st.container()
