@@ -5,3 +5,6 @@
 ## 2024-05-23 - Mapping Technical IDs to User-Friendly Display Names
 **Learning:** Users can be confused by technical IDs in selectboxes (e.g., "gemini/gemini-flash-latest"). Using the `format_func` parameter in Streamlit's `selectbox` widget maps technical identifiers to user-friendly display names without altering the underlying return values.
 **Action:** Always use a mapping dictionary and `format_func` in `selectbox` for technical IDs to ensure clarity for users while maintaining backend functionality.
+## 2024-06-02 - Disable Submit Button on Missing API Key
+**Learning:** Preventing invalid Streamlit form submissions by dynamically disabling the `st.form_submit_button` with an explanatory `help` tooltip provides better, non-jarring cognitive guidance compared to letting users click and face an error message.
+**Action:** Use `disabled` and `help` parameters on Streamlit form submit buttons when prerequisite inputs are missing.
