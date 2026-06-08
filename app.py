@@ -198,7 +198,13 @@ with st.form(key="mission_form", border=False):
         "Mission Objective",
         placeholder="e.g., What is the release date of Gemini 3 Pro?",
     )
-    submit_button = st.form_submit_button("EXECUTE", type="primary")
+    # 🎨 Palette: Disable form submit when API key is missing to improve UX
+    submit_button = st.form_submit_button(
+        "EXECUTE",
+        type="primary",
+        disabled=not api_key,
+        help="Please provide a Google API Key in the sidebar to execute missions." if not api_key else None
+    )
 
 if submit_button:
     if not api_key:
