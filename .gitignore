@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+streamlit.log
+test_selector.py
