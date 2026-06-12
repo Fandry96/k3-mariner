@@ -34,32 +34,45 @@ class MarinerSearchTool(Tool):
     def __init__(self):
         super().__init__()
         self.ddgs = DDGS() if DDGS else None
+        # ⚡ Bolt: Initialize bounded instance cache to prevent redundant search network calls
+        self._cache = {}
 
     def forward(self, query: str) -> str:
         """
         Executes the search with error handling for rate limits.
         """
+        # ⚡ Bolt: Return cached result immediately if available
+        if hasattr(self, '_cache') and query in self._cache:
+            return self._cache[query]
+
         if self.ddgs is None:
-            return "ERROR: 'duckduckgo_search' library is missing."
+            result = "ERROR: 'duckduckgo_search' library is missing."
+        else:
+            try:
+                # max_results=5 provides a good balance of context vs token usage
+                results = list(self.ddgs.text(query, max_results=5))
 
-        try:
-            # max_results=5 provides a good balance of context vs token usage
-            results = list(self.ddgs.text(query, max_results=5))
+                if not results:
+                    result = "No results found."
+                else:
+                    # Format results for the Agent's consumption
+                    result = "\n".join(
+                        [
+                            f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+                            for r in results
+                        ]
+                    )
+            except Exception as e:
+                result = f"SEARCH FAILED: {str(e)}"
 
-            if not results:
-                return "No results found."
-
-            # Format results for the Agent's consumption
-            formatted = "\n".join(
-                [
-                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
-                    for r in results
-                ]
-            )
-            return formatted
-
-        except Exception as e:
-            return f"SEARCH FAILED: {str(e)}"
+        # ⚡ Bolt: Store in bounded LRU cache before returning (skip errors)
+        if not hasattr(self, '_cache'):
+            self._cache = {}
+        if not result.startswith("SEARCH FAILED") and not result.startswith("ERROR"):
+            self._cache[query] = result
+            if len(self._cache) > 50:
+                self._cache.pop(next(iter(self._cache)))
+        return result
 
 
 class K3MarinerAgent(CodeAgent):
