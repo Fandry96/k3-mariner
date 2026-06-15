@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2024-05-25 - Regex Compilation Overhead
+**Learning:** Compiling regular expressions inside frequently called functions (e.g., `clean_ansi` called on every log line) creates redundant computational overhead and repeated memory allocations, severely impacting performance in tight loops.
+**Action:** Always pre-compile regular expressions at the module level (e.g., `ANSI_ESCAPE = re.compile(...)`) for frequently used utility functions.
