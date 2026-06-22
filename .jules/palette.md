@@ -5,3 +5,6 @@
 ## 2024-05-23 - Mapping Technical IDs to User-Friendly Display Names
 **Learning:** Users can be confused by technical IDs in selectboxes (e.g., "gemini/gemini-flash-latest"). Using the `format_func` parameter in Streamlit's `selectbox` widget maps technical identifiers to user-friendly display names without altering the underlying return values.
 **Action:** Always use a mapping dictionary and `format_func` in `selectbox` for technical IDs to ensure clarity for users while maintaining backend functionality.
+## 2024-06-22 - Add disabled state and tooltip to Streamlit form submit button
+**Learning:** When using `st.form_submit_button`, we can dynamically disable it and add a helpful tooltip using the `disabled` and `help` parameters based on state from outside the form (like a sidebar input). However, inputs inside the form do not trigger reactivities until submitted.
+**Action:** Always check if a required input is placed outside the form to safely apply dynamic `disabled` states to form submit buttons without locking the user out.
