@@ -198,7 +198,12 @@ with st.form(key="mission_form", border=False):
         "Mission Objective",
         placeholder="e.g., What is the release date of Gemini 3 Pro?",
     )
-    submit_button = st.form_submit_button("EXECUTE", type="primary")
+    submit_button = st.form_submit_button(
+        "EXECUTE",
+        type="primary",
+        disabled=not api_key,
+        help="API Key required to execute mission" if not api_key else "Start mission"
+    )
 
 if submit_button:
     if not api_key:
