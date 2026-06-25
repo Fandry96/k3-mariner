@@ -13,3 +13,6 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+## 2024-06-25 - Caching Agent Tool Methods
+**Learning:** In smolagents/LLM architectures, even if your frontend (Streamlit) caches its functions, the agent tools themselves execute independently and can be called repeatedly with the same arguments during a multi-step thinking process. This bypasses frontend caching entirely and results in expensive redundant network calls.
+**Action:** Always implement a bounded instance-level LRU cache (e.g. `self._cache` with `len()` checks) directly on the Tool classes themselves (like `MarinerSearchTool`) to intercept repeated tool queries from the LLM during generation, improving latency dramatically.
