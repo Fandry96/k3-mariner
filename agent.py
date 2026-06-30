@@ -34,6 +34,8 @@ class MarinerSearchTool(Tool):
     def __init__(self):
         super().__init__()
         self.ddgs = DDGS() if DDGS else None
+        # ⚡ Bolt: Added instance-level cache bounded to 50 items.
+        self._cache = {}
 
     def forward(self, query: str) -> str:
         """
@@ -42,20 +44,33 @@ class MarinerSearchTool(Tool):
         if self.ddgs is None:
             return "ERROR: 'duckduckgo_search' library is missing."
 
+        # ⚡ Bolt: LRU Cache logic to prevent redundant network calls
+        if query in self._cache:
+            # Pop and reinsert to maintain LRU order
+            val = self._cache.pop(query)
+            self._cache[query] = val
+            return val
+
         try:
             # max_results=5 provides a good balance of context vs token usage
             results = list(self.ddgs.text(query, max_results=5))
 
             if not results:
-                return "No results found."
+                formatted = "No results found."
+            else:
+                # Format results for the Agent's consumption
+                formatted = "\n".join(
+                    [
+                        f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+                        for r in results
+                    ]
+                )
 
-            # Format results for the Agent's consumption
-            formatted = "\n".join(
-                [
-                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
-                    for r in results
-                ]
-            )
+            # Cache the result and enforce bound
+            self._cache[query] = formatted
+            if len(self._cache) > 50:
+                self._cache.pop(next(iter(self._cache)))
+
             return formatted
 
         except Exception as e:
@@ -97,7 +112,7 @@ class K3MarinerAgent(CodeAgent):
 
         # 4. K3 Mariner Persona
         # We inject a specialized system prompt to govern the agent's behavior.
-        self.system_prompt = """
+        system_prompt_text = """
         IDENTITY:
         You are K3 MARINER, an autonomous research unit (Community Edition).
         
@@ -122,9 +137,8 @@ class K3MarinerAgent(CodeAgent):
             max_steps=15,
             **kwargs,
         )
-        # Manually override the system prompt if the library allows,
-        # or we will prepend it to tasks.
-        self.system_prompt_template = self.system_prompt
+        # Manually override the system prompt via prompt_templates
+        self.prompt_templates["system_prompt"] = system_prompt_text
         print(f"[Mariner] ONLINE. Engine: {model_id}")
 
 
