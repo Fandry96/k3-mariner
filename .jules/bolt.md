@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2025-03-05 - LRU Cache Eviction Strategy
+**Learning:** In standard Python dictionaries, updating an existing key doesn't move it to the end of the order. To properly maintain Least Recently Used (LRU) order on cache hits for bounded memory management, it's required to pop and re-insert the key.
+**Action:** When implementing an instance-level dictionary cache with a bounded size (e.g. `self._cache = {}`), always `pop` the value and reassign it (`self._cache[query] = val`) on a hit, and apply `if len(self._cache) > 50: self._cache.pop(next(iter(self._cache)))` on inserts to prevent memory leaks while keeping exceptions un-cached.
