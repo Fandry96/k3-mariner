@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2025-03-01 - Agent Tool Caching Pattern
+**Learning:** Agent tools frequently execute identical search queries during reasoning loops, causing network bottlenecks and rate limiting. Relying solely on `@st.cache_data` in the frontend leaves the backend `agent.py` vulnerable.
+**Action:** Implement bounded LRU dictionary caching (`self._cache`) at the instance level for all agent tools, correctly preserving LRU order by popping and re-inserting accessed keys.
