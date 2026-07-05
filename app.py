@@ -185,8 +185,14 @@ with st.sidebar:
     )
 
     # "Evergreen" model pointers
+    MODEL_MAP = {
+        "gemini/gemini-flash-latest": "Gemini Flash (Fast)",
+        "gemini/gemini-pro-latest": "Gemini Pro (Advanced)"
+    }
     model_choice = st.selectbox(
-        "Model Core", ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"]
+        "Model Core",
+        options=list(MODEL_MAP.keys()),
+        format_func=lambda x: MODEL_MAP.get(x, x)
     )
 
     st.divider()
@@ -198,7 +204,12 @@ with st.form(key="mission_form", border=False):
         "Mission Objective",
         placeholder="e.g., What is the release date of Gemini 3 Pro?",
     )
-    submit_button = st.form_submit_button("EXECUTE", type="primary")
+    submit_button = st.form_submit_button(
+        "EXECUTE",
+        type="primary",
+        disabled=not api_key,
+        help="Please enter your Google API Key in the sidebar to execute a mission." if not api_key else None
+    )
 
 if submit_button:
     if not api_key:
