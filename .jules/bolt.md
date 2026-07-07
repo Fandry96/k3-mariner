@@ -13,3 +13,6 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+## 2026-07-07 - Implement Tool Caching in Agent Search
+**Learning:** `app.py` caches the web search using `@st.cache_data`, but `agent.py` implements its own `MarinerSearchTool` which lacks any caching mechanism. This means that if the agent queries the same thing multiple times (or across different runs if instantiating `K3MarinerAgent` via script), it will make redundant external API calls to DuckDuckGo, leading to slower execution and potential rate-limiting.
+**Action:** Implement LRU caching (via an instance-level bounded dictionary) directly within `MarinerSearchTool` in `agent.py` to memoize the DuckDuckGo queries and avoid redundant network requests.
