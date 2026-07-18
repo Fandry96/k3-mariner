@@ -34,6 +34,7 @@ class MarinerSearchTool(Tool):
     def __init__(self):
         super().__init__()
         self.ddgs = DDGS() if DDGS else None
+        self._cache = {}  # ⚡ Bolt: LRU cache for search results
 
     def forward(self, query: str) -> str:
         """
@@ -42,20 +43,32 @@ class MarinerSearchTool(Tool):
         if self.ddgs is None:
             return "ERROR: 'duckduckgo_search' library is missing."
 
+        # ⚡ Bolt: Return cached result if available (and maintain LRU order)
+        if query in self._cache:
+            val = self._cache.pop(query)
+            self._cache[query] = val
+            return val
+
         try:
             # max_results=5 provides a good balance of context vs token usage
             results = list(self.ddgs.text(query, max_results=5))
 
             if not results:
-                return "No results found."
+                formatted = "No results found."
+            else:
+                # Format results for the Agent's consumption
+                formatted = "\n".join(
+                    [
+                        f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+                        for r in results
+                    ]
+                )
 
-            # Format results for the Agent's consumption
-            formatted = "\n".join(
-                [
-                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
-                    for r in results
-                ]
-            )
+            # ⚡ Bolt: Cache valid results and enforce max 50 items
+            self._cache[query] = formatted
+            if len(self._cache) > 50:
+                self._cache.pop(next(iter(self._cache)))
+
             return formatted
 
         except Exception as e:
