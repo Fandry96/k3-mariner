@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2024-07-29 - Instance-Level Tool Caching
+**Learning:** Tools instantiated per-agent run can still benefit from instance-level caching (like `self._cache = {}`) for repeated queries within the same session. However, standard Python dictionaries need explicit pop-and-reinsert to maintain LRU recency, and caching empty results is critical to prevent repeated expensive network calls for missing data.
+**Action:** Always implement a bounded size limit (e.g., 50) using LRU-style eviction for instance-level caches. Ensure valid 'empty' responses are cached, but skip caching for actual exception states.
