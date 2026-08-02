@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2025-03-02 - Bounded Tool Output Caching
+**Learning:** Returning early without caching on empty API results (e.g., 'No results found.') causes repeated identical queries to bypass the cache and continuously trigger expensive network calls, while error states must explicitly remain uncached.
+**Action:** When implementing instance-level dictionary caches (`self._cache = {}`) for tool outputs, correctly format and store valid empty responses, enforce bounded size limits (e.g., max 50 items) using LRU-style popping (`next(iter(self._cache))`), and explicitly skip caching on exceptions.
