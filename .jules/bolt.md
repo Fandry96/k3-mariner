@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2025-03-01 - Agent Tool Caching Strategy
+**Learning:** Agent tool invocations (like `duckduckgo_search`) can be repeatedly called with the identical query during a single run or multiple adjacent runs. Without an instance-level bounded LRU cache, these result in redundant and expensive network calls which significantly degrade performance and may trigger rate limits.
+**Action:** Implement bounded LRU-style caching using an instance-level dictionary `self._cache`. Enforce size limits via `self._cache.pop(next(iter(self._cache)))` and maintain recency on hits by popping and reinserting keys. Cache valid empty responses to prevent identical empty queries from bypassing the cache, while skipping caching for exceptions.
