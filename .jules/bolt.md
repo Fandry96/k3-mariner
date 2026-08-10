@@ -13,3 +13,6 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+## 2024-05-01 - Implement LRU caching for agent search
+**Learning:** DuckDuckGo search network calls are synchronous and repeated searches in the agent loop cause redundant latency.
+**Action:** Added an in-memory dictionary-based LRU cache to `MarinerSearchTool` to cache results, explicitly re-inserting on hit to maintain recency and enforcing a bound of 50 to prevent memory bloat, while storing empty results to prevent re-querying invalid items.
