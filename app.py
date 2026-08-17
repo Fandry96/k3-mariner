@@ -78,17 +78,35 @@ class MarinerSearchTool(Tool):
     inputs = {"query": {"type": "string", "description": "Search query."}}
     output_type = "string"
 
+    def __init__(self):
+        super().__init__()
+        self._cache = {}  # ⚡ Bolt: LRU cache for search results to avoid redundant API calls
+
     def forward(self, query: str) -> str:
+        # ⚡ Bolt: Check LRU cache to prevent duplicate network requests for same query
+        if query in self._cache:
+            val = self._cache.pop(query)
+            self._cache[query] = val
+            return val
+
         try:
             results = perform_search(query)
             if not results:
-                return "No results found."
-            return "\n".join(
-                [
-                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
-                    for r in results
-                ]
-            )
+                result_val = "No results found."
+            else:
+                result_val = "\n".join(
+                    [
+                        f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+                        for r in results
+                    ]
+                )
+
+            # ⚡ Bolt: Cache successful results (including valid empty ones) with size limit
+            self._cache[query] = result_val
+            if len(self._cache) > 50:
+                self._cache.pop(next(iter(self._cache)))
+
+            return result_val
         except Exception as e:
             return f"Search Error: {e}"
 

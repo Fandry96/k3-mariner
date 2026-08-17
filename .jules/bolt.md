@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2025-03-05 - Caching Web Search Operations
+**Learning:** For components that repeatedly issue redundant network searches (e.g. agents performing self-correction or similar queries), failing to cache those responses at the class level incurs massive performance penalties and risks rate-limiting. Empty result states must also be cached to prevent repeatedly searching for a known void query.
+**Action:** Implement LRU caching directly in tool classes to intercept queries before expensive external requests are made. Enforce a bound on cache size using LRU (pop and re-insert) to prevent memory leaks in long-running processes. Ensure to cache valid empty states, but skip caching errors.
