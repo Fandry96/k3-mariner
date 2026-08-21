@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2025-03-08 - Caching Valid Empty Responses
+**Learning:** Failing to cache valid 'empty' responses (e.g., "No results found.") from tool outputs creates a performance bottleneck. When an agent repetitively queries for non-existent data, the early return without caching forces continuous, expensive network calls that bypass the cache entirely.
+**Action:** Always format and cache valid empty responses in tool outputs. Exceptions and true error states (e.g., rate limits) should remain uncached so the agent can retry.

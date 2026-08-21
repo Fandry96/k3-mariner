@@ -1,5 +1,6 @@
 import os
 import sys
+import functools
 from dotenv import load_dotenv
 
 # Framework Imports
@@ -18,6 +19,23 @@ except ImportError:
 load_dotenv(override=True)
 
 
+@functools.lru_cache(maxsize=128)
+def _cached_search(query: str) -> str:
+    # ⚡ Bolt: Cache web search including empty results to prevent redundant network calls
+    with DDGS() as ddgs:
+        results = list(ddgs.text(query, max_results=5))
+
+    if not results:
+        return "No results found."
+
+    return "\n".join(
+        [
+            f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+            for r in results
+        ]
+    )
+
+
 class MarinerSearchTool(Tool):
     name = "web_search"
     description = (
@@ -33,31 +51,16 @@ class MarinerSearchTool(Tool):
 
     def __init__(self):
         super().__init__()
-        self.ddgs = DDGS() if DDGS else None
 
     def forward(self, query: str) -> str:
         """
         Executes the search with error handling for rate limits.
         """
-        if self.ddgs is None:
+        if DDGS is None:
             return "ERROR: 'duckduckgo_search' library is missing."
 
         try:
-            # max_results=5 provides a good balance of context vs token usage
-            results = list(self.ddgs.text(query, max_results=5))
-
-            if not results:
-                return "No results found."
-
-            # Format results for the Agent's consumption
-            formatted = "\n".join(
-                [
-                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
-                    for r in results
-                ]
-            )
-            return formatted
-
+            return _cached_search(query)
         except Exception as e:
             return f"SEARCH FAILED: {str(e)}"
 
