@@ -13,3 +13,11 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2025-03-02 - Safe API Caching Strategy
+**Learning:** Applying `functools.lru_cache` to a function that instantiates a new HTTP client (like `DDGS()`) destroys connection pooling, significantly degrading performance for unique queries. Furthermore, caching mutable types like `list` is unsafe as downstream modifications corrupt the cache.
+**Action:** When caching external API calls, cache methods on class instances that reuse a single established client. Always return immutable types (like `tuple`) from cached methods to prevent cache corruption.
+
+## 2025-03-02 - Generator Expression in Join
+**Learning:** Replacing list comprehensions with generator expressions inside `.join()` calls (e.g., `'\n'.join(f"..." for r in results)`) avoids unnecessary intermediate memory allocations and slightly improves performance.
+**Action:** Always prefer generator expressions over list comprehensions when the only purpose of the iterable is to be immediately consumed by a reducing function like `.join()` or `sum()`.

@@ -1,5 +1,6 @@
 import os
 import sys
+import functools
 from dotenv import load_dotenv
 
 # Framework Imports
@@ -35,6 +36,10 @@ class MarinerSearchTool(Tool):
         super().__init__()
         self.ddgs = DDGS() if DDGS else None
 
+    @functools.lru_cache(maxsize=128)
+    def _cached_ddgs_text(self, query: str):
+        return tuple(self.ddgs.text(query, max_results=5))
+
     def forward(self, query: str) -> str:
         """
         Executes the search with error handling for rate limits.
@@ -44,17 +49,18 @@ class MarinerSearchTool(Tool):
 
         try:
             # max_results=5 provides a good balance of context vs token usage
-            results = list(self.ddgs.text(query, max_results=5))
+            # ⚡ Bolt: Cached search results as an immutable tuple to prevent redundant network calls,
+            # reusing the HTTP connection pool while protecting the cache from downstream mutations.
+            results = self._cached_ddgs_text(query)
 
             if not results:
                 return "No results found."
 
             # Format results for the Agent's consumption
+            # ⚡ Bolt: Replaced list comprehension with generator expression to avoid intermediate memory allocation.
             formatted = "\n".join(
-                [
-                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
-                    for r in results
-                ]
+                f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+                for r in results
             )
             return formatted
 
