@@ -1,5 +1,6 @@
 import os
 import sys
+import functools
 from dotenv import load_dotenv
 
 # Framework Imports
@@ -35,6 +36,22 @@ class MarinerSearchTool(Tool):
         super().__init__()
         self.ddgs = DDGS() if DDGS else None
 
+    @functools.lru_cache(maxsize=128)
+    def _cached_search(self, query: str) -> str:
+        # max_results=5 provides a good balance of context vs token usage
+        results = list(self.ddgs.text(query, max_results=5))
+
+        if not results:
+            return "No results found."
+
+        # Format results for the Agent's consumption
+        # ⚡ Bolt: Replaced list comprehension inside .join() with generator expression to reduce memory allocations
+        formatted = "\n".join(
+            f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+            for r in results
+        )
+        return formatted
+
     def forward(self, query: str) -> str:
         """
         Executes the search with error handling for rate limits.
@@ -43,21 +60,8 @@ class MarinerSearchTool(Tool):
             return "ERROR: 'duckduckgo_search' library is missing."
 
         try:
-            # max_results=5 provides a good balance of context vs token usage
-            results = list(self.ddgs.text(query, max_results=5))
-
-            if not results:
-                return "No results found."
-
-            # Format results for the Agent's consumption
-            formatted = "\n".join(
-                [
-                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
-                    for r in results
-                ]
-            )
-            return formatted
-
+            # ⚡ Bolt: Use cached method to prevent duplicate network calls for the same query
+            return self._cached_search(query)
         except Exception as e:
             return f"SEARCH FAILED: {str(e)}"
 
