@@ -1,5 +1,6 @@
 import os
 import sys
+import functools
 from dotenv import load_dotenv
 
 # Framework Imports
@@ -35,6 +36,12 @@ class MarinerSearchTool(Tool):
         super().__init__()
         self.ddgs = DDGS() if DDGS else None
 
+    # ⚡ Bolt: Cache search results on a class method to reuse the single DDGS client's
+    # connection pooling. Returns a tuple to protect the cache from downstream mutations.
+    @functools.lru_cache(maxsize=128)
+    def _cached_search(self, query: str) -> tuple:
+        return tuple(self.ddgs.text(query, max_results=5))
+
     def forward(self, query: str) -> str:
         """
         Executes the search with error handling for rate limits.
@@ -43,18 +50,17 @@ class MarinerSearchTool(Tool):
             return "ERROR: 'duckduckgo_search' library is missing."
 
         try:
-            # max_results=5 provides a good balance of context vs token usage
-            results = list(self.ddgs.text(query, max_results=5))
+            # ⚡ Bolt: Use the cached method to avoid redundant network calls and reuse TCP/TLS connections
+            results = self._cached_search(query)
 
+            # ⚡ Bolt: Empty results are correctly cached to prevent repeated failing network calls
             if not results:
                 return "No results found."
 
-            # Format results for the Agent's consumption
+            # ⚡ Bolt: Use generator expression inside .join() to avoid intermediate list memory allocation
             formatted = "\n".join(
-                [
-                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
-                    for r in results
-                ]
+                f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+                for r in results
             )
             return formatted
 
