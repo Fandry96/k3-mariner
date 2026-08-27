@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2025-03-09 - Memory Allocation Optimization in String Formatting
+**Learning:** Using list comprehensions inside `join()` calls (e.g., `"\n".join([f"..." for x in items])`) causes Python to allocate intermediate lists in memory before processing the strings. This is less efficient, particularly when processing larger datasets or running high-frequency agents.
+**Action:** Replace list comprehensions with generator expressions when passing iterables to `join()` calls (e.g., `"\n".join(f"..." for x in items)`). This prevents unnecessary intermediate allocations, yielding a minor memory overhead reduction and slight execution speed improvement with zero readability loss.
