@@ -83,11 +83,10 @@ class MarinerSearchTool(Tool):
             results = perform_search(query)
             if not results:
                 return "No results found."
+            # ⚡ Bolt: Replaced list comprehension with generator expression to avoid intermediate memory allocations.
             return "\n".join(
-                [
-                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
-                    for r in results
-                ]
+                f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+                for r in results
             )
         except Exception as e:
             return f"Search Error: {e}"

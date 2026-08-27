@@ -50,11 +50,11 @@ class MarinerSearchTool(Tool):
                 return "No results found."
 
             # Format results for the Agent's consumption
+            # ⚡ Bolt: Replaced list comprehension with generator expression inside .join()
+            # to avoid unnecessary intermediate memory allocations and improve performance.
             formatted = "\n".join(
-                [
-                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
-                    for r in results
-                ]
+                f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+                for r in results
             )
             return formatted
 
