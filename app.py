@@ -185,8 +185,13 @@ with st.sidebar:
     )
 
     # "Evergreen" model pointers
+    model_names = {
+        "gemini/gemini-flash-latest": "Gemini Flash",
+        "gemini/gemini-pro-latest": "Gemini Pro"
+    }
     model_choice = st.selectbox(
-        "Model Core", ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"]
+        "Model Core", ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"],
+        format_func=lambda x: model_names.get(x, x)
     )
 
     st.divider()
@@ -198,7 +203,12 @@ with st.form(key="mission_form", border=False):
         "Mission Objective",
         placeholder="e.g., What is the release date of Gemini 3 Pro?",
     )
-    submit_button = st.form_submit_button("EXECUTE", type="primary")
+    submit_button = st.form_submit_button(
+        "EXECUTE",
+        type="primary",
+        disabled=not api_key,
+        help="Please provide your Google API Key to execute." if not api_key else None
+    )
 
 if submit_button:
     if not api_key:
