@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2025-03-05 - Safe Tool Method Caching
+**Learning:** Applying `@functools.lru_cache` to a method inside a tool inheriting from `smolagents.Tool` (which in turn inherits from Pydantic `BaseModel`) can lead to unhashable type errors or memory leaks because `self` is part of the cache key. Instantiating a new DDGS client inside a cached function breaks TCP/TLS connection pooling.
+**Action:** Use an instance-level dictionary cache (e.g. `self._cache = {}`) inside the tool's `__init__` to safely cache results on the instance while preserving underlying client connection reuse.
