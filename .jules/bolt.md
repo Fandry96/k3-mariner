@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2026-08-30 - Instance-Level Caching Pattern
+**Learning:** Applying @functools.lru_cache to an instance method (e.g., def method(self)) uses self as part of the cache key. This causes a memory leak by preventing garbage collection of the instance, and raises a TypeError if the class inherits from an unhashable type.
+**Action:** Use a simple dictionary instance attribute (e.g., self._cache = {}) for safe instance-level caching instead.
