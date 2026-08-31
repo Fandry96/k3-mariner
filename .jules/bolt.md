@@ -13,3 +13,11 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2026-08-31 - Instance-Level Caching with Connection Pooling
+**Learning:** Instantiating external API clients (like `DDGS`) inside cached functions destroys HTTP connection pooling for each unique call. Applying `@functools.lru_cache` to instance methods causes memory leaks because `self` is part of the cache key.
+**Action:** Use a simple dictionary instance attribute (`self._cache = {}`) for safe instance-level caching, and initialize the API client once in `__init__` to reuse established connections.
+
+## 2026-08-31 - Streamlit Cache Serialization Overhead
+**Learning:** Streamlit's `@st.cache_data` uses pickling to serialize return values. Caching complex objects (like lists of nested dictionaries) incurs significantly higher serialization/deserialization CPU overhead and memory usage on every cache hit compared to simple strings.
+**Action:** Always process and format complex API responses *inside* the `@st.cache_data` function so only the final flat string or primitive is cached and retrieved.
