@@ -68,7 +68,19 @@ ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 def perform_search(query: str):
     """Cached DuckDuckGo search to prevent redundant network calls."""
     with DDGS() as ddgs:
-        return list(ddgs.text(query, max_results=5))
+        results = list(ddgs.text(query, max_results=5))
+        if not results:
+            return "No results found."
+
+        # ⚡ Bolt: Format complex dictionary responses into a flat string BEFORE caching.
+        # Streamlit's @st.cache_data pickles return values. Caching a simple string avoids
+        # the CPU/memory overhead of serializing/deserializing lists of dicts on every cache hit.
+        return "\n".join(
+            [
+                f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+                for r in results
+            ]
+        )
 
 
 # --- TOOL DEFINITION ---
@@ -80,15 +92,7 @@ class MarinerSearchTool(Tool):
 
     def forward(self, query: str) -> str:
         try:
-            results = perform_search(query)
-            if not results:
-                return "No results found."
-            return "\n".join(
-                [
-                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
-                    for r in results
-                ]
-            )
+            return perform_search(query)
         except Exception as e:
             return f"Search Error: {e}"
 
