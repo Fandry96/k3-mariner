@@ -68,7 +68,17 @@ ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 def perform_search(query: str):
     """Cached DuckDuckGo search to prevent redundant network calls."""
     with DDGS() as ddgs:
-        return list(ddgs.text(query, max_results=5))
+        # ⚡ Bolt: Process and format complex responses inside the @st.cache_data function
+        # so only the final flat string is stored in the cache, reducing pickling overhead.
+        results = list(ddgs.text(query, max_results=5))
+        if not results:
+            return "No results found."
+        return "\n".join(
+            [
+                f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
+                for r in results
+            ]
+        )
 
 
 # --- TOOL DEFINITION ---
@@ -80,15 +90,7 @@ class MarinerSearchTool(Tool):
 
     def forward(self, query: str) -> str:
         try:
-            results = perform_search(query)
-            if not results:
-                return "No results found."
-            return "\n".join(
-                [
-                    f"- [Title]: {r.get('title', 'N/A')}\n  [Link]: {r.get('href', 'N/A')}\n  [Snippet]: {r.get('body', 'N/A')}"
-                    for r in results
-                ]
-            )
+            return perform_search(query)
         except Exception as e:
             return f"Search Error: {e}"
 
