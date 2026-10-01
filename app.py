@@ -185,8 +185,13 @@ with st.sidebar:
     )
 
     # "Evergreen" model pointers
+    MODEL_NAMES = {
+        "gemini/gemini-flash-latest": "Gemini Flash",
+        "gemini/gemini-pro-latest": "Gemini Pro"
+    }
     model_choice = st.selectbox(
-        "Model Core", ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"]
+        "Model Core", ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"],
+        format_func=lambda x: MODEL_NAMES.get(x, x)
     )
 
     st.divider()
