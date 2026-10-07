@@ -124,6 +124,9 @@ def get_agent(_api_key, model_id):
 # --- CAPTURE UTILS ---
 def clean_ansi(text):
     """Removes ANSI escape sequences from text using pre-compiled regex."""
+    # ⚡ Bolt: Fast path to bypass regex if no ANSI escape is present
+    if "\x1b" not in text:
+        return text
     return ANSI_ESCAPE.sub("", text)
 
 
