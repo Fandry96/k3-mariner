@@ -13,3 +13,6 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+## 2026-10-09 - Fast-path string membership before regex
+**Learning:** Checking for string membership (e.g., `if "\x1b" not in text`) is significantly faster than executing a regex replacement on strings that do not contain the target pattern.
+**Action:** Always include a fast-path string membership check before running regex operations on hot paths (like streaming output).
