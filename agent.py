@@ -1,5 +1,6 @@
 import os
 import sys
+import functools
 from dotenv import load_dotenv
 
 # Framework Imports
@@ -18,6 +19,26 @@ except ImportError:
 load_dotenv(override=True)
 
 
+# Global persistent instance for connection pooling
+_GLOBAL_DDGS = DDGS() if DDGS else None
+
+@functools.lru_cache(maxsize=32)
+def cached_search(query: str):
+    """
+    ⚡ Bolt: Cached web search function.
+    Agent tools often make repeated identical queries during reasoning or retries.
+    Caching these calls eliminates redundant blocking network latency.
+    Impact: Subsequent identical searches complete instantly (from cache) instead of waiting on network request.
+    """
+    if _GLOBAL_DDGS is None:
+        # Reverted back to returning a string instead of raising RuntimeError to maintain graceful error handling
+        return "ERROR: 'duckduckgo_search' library is missing."
+
+    # We don't use context manager `with DDGS() as ddgs:` here to preserve
+    # underlying HTTP connection pooling instead of recreating it every query.
+    return list(_GLOBAL_DDGS.text(query, max_results=5))
+
+
 class MarinerSearchTool(Tool):
     name = "web_search"
     description = (
@@ -33,18 +54,17 @@ class MarinerSearchTool(Tool):
 
     def __init__(self):
         super().__init__()
-        self.ddgs = DDGS() if DDGS else None
 
     def forward(self, query: str) -> str:
         """
         Executes the search with error handling for rate limits.
         """
-        if self.ddgs is None:
-            return "ERROR: 'duckduckgo_search' library is missing."
-
         try:
-            # max_results=5 provides a good balance of context vs token usage
-            results = list(self.ddgs.text(query, max_results=5))
+            results = cached_search(query)
+
+            # Handle gracefully returned error string
+            if isinstance(results, str):
+                return results
 
             if not results:
                 return "No results found."
