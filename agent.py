@@ -18,6 +18,9 @@ except ImportError:
 load_dotenv(override=True)
 
 
+# ⚡ Bolt: Use a single global instance of DDGS to enable httpx connection pooling across calls
+_GLOBAL_DDGS = DDGS() if DDGS else None
+
 class MarinerSearchTool(Tool):
     name = "web_search"
     description = (
@@ -33,7 +36,7 @@ class MarinerSearchTool(Tool):
 
     def __init__(self):
         super().__init__()
-        self.ddgs = DDGS() if DDGS else None
+        self.ddgs = _GLOBAL_DDGS
 
     def forward(self, query: str) -> str:
         """
