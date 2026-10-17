@@ -13,3 +13,7 @@
 ## 2025-03-01 - Redundant StringIO Buffering Anti-Pattern
 **Learning:** In incremental data capture flows like `capture_stdout`, allocating and writing to a write-only `StringIO` buffer (e.g., `new_out`) before processing the chunk is a double-buffering anti-pattern. This wastes memory allocations and CPU cycles on write operations whose data is never read or returned.
 **Action:** Eliminate write-only `StringIO` objects from data capture flows. Removing a redundant `StringIO.write` operation in a tight loop yields approximately 75% performance improvement for that specific operation by reducing CPU overhead and memory allocation.
+
+## 2026-10-17 - DuckDuckGo Search Client Persistence
+**Learning:** Persisting `duckduckgo_search.DDGS()` instances across multiple queries using module globals or `@st.cache_resource` actually significantly *degrades* performance compared to creating a new `DDGS()` instance inside a context manager for each request (e.g., ~5.5s vs ~1.2s for 5 queries).
+**Action:** Always instantiate `DDGS()` freshly inside a `with DDGS() as ddgs:` block for `duckduckgo_search` instead of attempting to pool or reuse the client instance, contrary to standard HTTP client best practices.
