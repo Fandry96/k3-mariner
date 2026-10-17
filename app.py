@@ -122,7 +122,8 @@ def get_agent(_api_key, model_id):
 
 
 # --- CAPTURE UTILS ---
-def clean_ansi(text):
+@st.cache_data(ttl=3600, show_spinner=False)
+def clean_ansi(text: str):
     """Removes ANSI escape sequences from text using pre-compiled regex."""
     return ANSI_ESCAPE.sub("", text)
 
