@@ -64,11 +64,16 @@ st.markdown(
 ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
 
+@st.cache_resource
+def get_ddgs_client():
+    """⚡ Bolt: Persist DDGS client to avoid setup overhead on every cache miss."""
+    return DDGS()
+
 @st.cache_data(ttl=3600, show_spinner=False)
 def perform_search(query: str):
     """Cached DuckDuckGo search to prevent redundant network calls."""
-    with DDGS() as ddgs:
-        return list(ddgs.text(query, max_results=5))
+    client = get_ddgs_client()
+    return list(client.text(query, max_results=5))
 
 
 # --- TOOL DEFINITION ---
