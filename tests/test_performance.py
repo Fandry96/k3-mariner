@@ -4,6 +4,7 @@ import re
 from io import StringIO
 from contextlib import contextmanager
 
+
 # Mock placeholder
 class MockPlaceholder:
     def __init__(self):
@@ -14,10 +15,12 @@ class MockPlaceholder:
         self.update_count += 1
         self.last_text = text
 
+
 # Helper to clean ansi (copied from app.py)
 def clean_ansi(text):
     ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
     return ansi_escape.sub("", text)
+
 
 # Unoptimized version (from app.py)
 @contextmanager
@@ -44,6 +47,7 @@ def capture_stdout_unoptimized(placeholder):
     finally:
         sys.stdout = old_out
         update()
+
 
 # Optimized version
 @contextmanager
@@ -80,6 +84,7 @@ def capture_stdout_optimized(placeholder):
         sys.stdout = old_out
         update()
 
+
 def test_performance():
     print("Testing Unoptimized Performance...")
     p1 = MockPlaceholder()
@@ -93,7 +98,6 @@ def test_performance():
 
     # Expect 100 updates (one per line) + 1 final flush = 101 or similar
     assert p1.update_count >= 100, f"Expected >= 100 updates, got {p1.update_count}"
-
 
     print("\nTesting Optimized Performance...")
     p2 = MockPlaceholder()
@@ -110,6 +114,7 @@ def test_performance():
     assert p2.update_count < 50, f"Expected < 50 updates, got {p2.update_count}"
 
     print("\nSUCCESS: Optimization verified.")
+
 
 if __name__ == "__main__":
     test_performance()
