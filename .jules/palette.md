@@ -5,3 +5,6 @@
 ## 2024-05-23 - Mapping Technical IDs to User-Friendly Display Names
 **Learning:** Users can be confused by technical IDs in selectboxes (e.g., "gemini/gemini-flash-latest"). Using the `format_func` parameter in Streamlit's `selectbox` widget maps technical identifiers to user-friendly display names without altering the underlying return values.
 **Action:** Always use a mapping dictionary and `format_func` in `selectbox` for technical IDs to ensure clarity for users while maintaining backend functionality.
+## 2023-11-02 - Map Technical Identifiers to Friendly UI Names
+**Learning:** Directly exposing backend technical IDs (like 'gemini/gemini-flash-latest') causes cognitive load for users and looks unpolished. Stripping redundancies and formatting as Title Case (e.g. 'Flash Latest') significantly improves UX.
+**Action:** Always use formatting properties (like 'format_func' in Streamlit) to translate technical strings into human-readable display names before showing them in the UI.
