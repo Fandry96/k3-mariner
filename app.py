@@ -184,9 +184,17 @@ with st.sidebar:
         help="Get your key at https://aistudio.google.com/app/apikey",
     )
 
+    def format_model_name(model_id):
+        mapping = {
+            "gemini/gemini-flash-latest": "Gemini Flash Latest",
+            "gemini/gemini-pro-latest": "Gemini Pro Latest"
+        }
+        return mapping.get(model_id, model_id)
+
     # "Evergreen" model pointers
     model_choice = st.selectbox(
-        "Model Core", ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"]
+        "Model Core", ["gemini/gemini-flash-latest", "gemini/gemini-pro-latest"],
+        format_func=format_model_name
     )
 
     st.divider()
