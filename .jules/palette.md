@@ -5,3 +5,6 @@
 ## 2024-05-23 - Mapping Technical IDs to User-Friendly Display Names
 **Learning:** Users can be confused by technical IDs in selectboxes (e.g., "gemini/gemini-flash-latest"). Using the `format_func` parameter in Streamlit's `selectbox` widget maps technical identifiers to user-friendly display names without altering the underlying return values.
 **Action:** Always use a mapping dictionary and `format_func` in `selectbox` for technical IDs to ensure clarity for users while maintaining backend functionality.
+## 2024-11-09 - Remove Awkward and Redundant Model Name Prefixes
+**Learning:** Even when technical IDs are mapped to friendly names in `st.selectbox` using `format_func`, users can still experience cognitive friction if the resulting names include awkward redundancies (like "Gemini Gemini"). Sticking too rigidly to original names can make the UI clumsy.
+**Action:** When creating display mappings for technical dropdowns, explicitly omit redundant terms to prioritize visual clarity and a cleaner user experience.
